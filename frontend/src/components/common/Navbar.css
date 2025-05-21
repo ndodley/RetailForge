@@ -1,0 +1,25 @@
+nav {
+    background: #333;
+    padding: 10px;
+}
+
+ul {
+    list-style: none;
+    display: flex; /* ✅ Makes links display horizontally */
+    gap: 20px; /* ✅ Adds spacing between links */
+    padding: 0;
+}
+
+li {
+    display: inline-block;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+a:hover {
+    text-decoration: underline;
+}

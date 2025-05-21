@@ -1,0 +1,74 @@
+console.log('🔥 Server is starting... Logging should work!');
+
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+
+const app = express();
+console.log('app'); // ✅ Debugging Check
+
+// Define directories
+const productImagesDir = path.join(__dirname, '../images/product_images');
+const defaultImagePath = '/images/other_images/dummy_product.jpg';
+
+console.log('server __dirname:', __dirname); // ✅ Debugging Check
+console.log('productImagesDir:', productImagesDir); // ✅ Debugging Check
+console.log('defaultImagePath:', defaultImagePath); // ✅ Debugging Check
+
+// Ensure directories exist
+if (!fs.existsSync(productImagesDir)) {
+    fs.mkdirSync(productImagesDir, { recursive: true });
+}
+
+// Configure Multer storage globally
+const storage = multer.diskStorage({
+    destination: productImagesDir,
+    filename: (req, file, cb) => {
+        cb(null, `product_${Date.now()}_${file.originalname}`);
+    }
+});
+const upload = multer({ storage });
+//console.log('upload:', upload); // ✅ Debugging Check
+
+
+// Now that Multer is initialized, we can export it properly
+module.exports.upload = upload; // ✅ Separate export ensures Multer is properly available
+module.exports.app = express();
+
+const departmentRoutes = require('./routes/departmentRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const productRoutes = require('./routes/productRoutes');
+
+//console.log('departmentRoutes'); // ✅ Debugging Check
+//console.log('categoryRoutes'); // ✅ Debugging Check
+//console.log('productRoutes'); // ✅ Debugging Check
+
+
+// Middleware
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Serve static files
+app.use('/uploads', express.static(productImagesDir)); // ✅ Ensures image files are accessible
+app.use('/images', express.static(path.join(__dirname, '../images'))); // ✅ Allows direct access
+console.log('pathjoin images: ', path.join(__dirname, '../images')); // ✅ Debugging Check
+
+// Image upload endpoint (handled separately from product creation)
+app.post('/api/upload', upload.single('image'), (req, res) => {
+    const imagePath = req.file ? `/images/product_images/${req.file.filename}` : defaultImagePath;
+    res.json({ imagePath });
+});
+
+
+
+// Routes
+app.use('/api/departments', departmentRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
+
+// Set server port
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
