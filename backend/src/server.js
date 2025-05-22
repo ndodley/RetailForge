@@ -1,6 +1,7 @@
 console.log('🔥 Server is starting... Logging should work!');
 
 const express = require('express');
+const session = require('express-session'); // Add Session
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
@@ -37,19 +38,28 @@ const upload = multer({ storage });
 module.exports.upload = upload; // ✅ Separate export ensures Multer is properly available
 module.exports.app = express();
 
-const departmentRoutes = require('./routes/departmentRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const productRoutes = require('./routes/productRoutes');
-
-//console.log('departmentRoutes'); // ✅ Debugging Check
-//console.log('categoryRoutes'); // ✅ Debugging Check
-//console.log('productRoutes'); // ✅ Debugging Check
-
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',  // ✅ Ensures frontend can access sessions
+    credentials: true                 // ✅ Allows cookies to be sent
+}));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// ✅ Enable session storage
+app.use(session({
+    secret: 'your_secret_key',        // ✅ Change to a secure key
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,               // ✅ Prevents XSS attacks
+        secure: false,                // ✅ Set `true` in production with HTTPS
+        sameSite: 'none'                // ✅ Change 'lax' to 'none' (fixes missing session in cross-origin requests)
+    }
+}));
+
 
 // Serve static files
 app.use('/uploads', express.static(productImagesDir)); // ✅ Ensures image files are accessible
@@ -63,11 +73,32 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 });
 
 
+const departmentRoutes = require('./routes/departmentRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const productRoutes = require('./routes/productRoutes');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 
-// Routes
+//console.log('departmentRoutes'); // ✅ Debugging Check
+//console.log('categoryRoutes'); // ✅ Debugging Check
+//console.log('productRoutes'); // ✅ Debugging Check
+
+
+// Routes (must be placed BEFORE error handling)
 app.use('/api/departments', departmentRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+
+
+
+// ✅ Global Error Handling (prevents crashes)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal server error' });
+});
 
 // Set server port
 const PORT = process.env.PORT || 5000;
