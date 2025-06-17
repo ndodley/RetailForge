@@ -8,7 +8,7 @@ function Navbar() {
 
     return (
         <nav>
-            <ul>
+            <ul className="navbar">
                 <li className="project-title"><Link to="/">Department Store</Link></li>
 
                 {/* ✅ Admin Dropdown for Managers */}
@@ -17,24 +17,27 @@ function Navbar() {
                         <span>Admin ▼</span>
                         <ul className="dropdown-menu">
                             <li><Link to="/admin/departments">Departments</Link></li>
-                            <li><Link to="/admin/categories">Categories</Link></li>  {/* ✅ Ensure separate <li> */}
-                            <li><Link to="/admin/products">Products</Link></li>   {/* ✅ Ensure separate <li> */}
+                            <li><Link to="/admin/categories">Categories</Link></li>
+                            <li><Link to="/admin/products">Products</Link></li>
+                            <li><Link to="/admin/users">Users</Link></li> {/* ✅ Added Users tab */}
                         </ul>
                     </li>
                 )}
 
-                {/* ✅ Welcome Message */}
-                {user ? (
-                    <>
-                        <li><span>Welcome, {user.first_name}!</span></li>
-                        <li><button onClick={logout}>Logout</button></li>
-                    </>
-                ) : (
-                    <>
-                        <li><Link to="/login">Login</Link></li>
-                        <li><Link to="/register">Register</Link></li>
-                    </>
-                )}
+                {/* ✅ Fully Right-Aligned User Info */}
+                <li className="right-section">
+                    {user ? (
+                        <>
+                            <span className="welcome-text">Welcome, {user.first_name}!</span>
+                            <button className="logout-btn" onClick={logout}>Logout</button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login">Login</Link>
+                            <Link to="/register">Register</Link>
+                        </>
+                    )}
+                </li>
             </ul>
         </nav>
     );
