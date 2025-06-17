@@ -11,6 +11,7 @@ ul {
     display: flex;
     gap: 20px;
     padding: 0;
+    width: 100%; /* ✅ Ensures full-width layout */
 }
 
 li {
@@ -65,10 +66,32 @@ li {
     color: white; /* ✅ Ensures visibility on dark background */
 }
 
+/* ✅ Fully Right-Aligned User Section */
+.right-section {
+    margin-left: auto; /* ✅ Forces it to the far right */
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
 /* ✅ Welcome Text Styling */
-li span {
+.welcome-text {
     color: #ff9800; /* ✅ Makes welcome text pop */
     font-weight: bold;
+}
+
+/* ✅ Logout Button Styling */
+.logout-btn {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.logout-btn:hover {
+    background-color: #e68900;
 }
 
 /* ✅ Link Styling */
