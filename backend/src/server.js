@@ -78,6 +78,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
+const shoppingCartRoutes = require('./routes/shoppingCartRoutes');
 
 //console.log('departmentRoutes'); // ✅ Debugging Check
 //console.log('categoryRoutes'); // ✅ Debugging Check
@@ -91,6 +92,7 @@ app.use('/api/products', productRoutes);
 
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/cart', shoppingCartRoutes);
 
 
 

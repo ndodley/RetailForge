@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom'; // ✅ Import navigation hook
+import { useNavigate, useLocation } from 'react-router-dom'; // ✅ Import navigation and location hooks
 
 const RegisterPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { register } = useAuth();
 
     const [formData, setFormData] = useState({
@@ -22,7 +23,15 @@ const RegisterPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         await register(formData);
-        navigate('/'); // ✅ Redirects user after successful registration
+        // Redirect to previous page or home
+        const from = location.state?.from;
+        if (from && typeof from === 'object' && from.pathname) {
+            navigate(from.pathname + (from.search || ''), { replace: true });
+        } else if (typeof from === 'string') {
+            navigate(from, { replace: true });
+        } else {
+            navigate('/', { replace: true });
+        }
     };
 
     return (

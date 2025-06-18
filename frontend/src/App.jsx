@@ -17,6 +17,7 @@ import PrivateRoute from './pages/auth/PrivateRoute'; // ✅ Added Protected Rou
 import { AuthProvider } from './context/AuthContext'; // ✅ Added Authentication Context
 import ProductPage from './pages/ProductPage';
 import ProductInfoPage from './pages/ProductInfoPage';
+import ShoppingCartPage from './pages/ShoppingCartPage';
 
 function App() {
     return (
@@ -49,6 +50,7 @@ function App() {
                     {/* Public Product Routes */}
                     <Route path="/products" element={<ProductPage />} />
                     <Route path="/products/:id" element={<ProductInfoPage />} />
+                    <Route path="/cart" element={<ShoppingCartPage />} />
                 </Routes>
             </Router>
         </AuthProvider>

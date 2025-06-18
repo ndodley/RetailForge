@@ -26,6 +26,13 @@ function Navbar() {
                 
                 <li><Link to="/products">Products</Link></li>
 
+                {/* Shopping Cart Icon Link */}
+                <li>
+                    <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center' }}>
+                        <span role="img" aria-label="cart" style={{ marginRight: 4 }}>🛒</span>
+                    </Link>
+                </li>
+
                 {/* ✅ Fully Right-Aligned User Info */}
                 <li className="right-section">
                     {user ? (
