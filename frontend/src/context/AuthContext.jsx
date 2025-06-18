@@ -33,14 +33,20 @@ export const AuthProvider = ({ children }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
+                credentials: 'include', // Ensure session cookies are sent
             });
 
             if (!res.ok) throw new Error(`Login failed: ${res.status} ${res.statusText}`);
 
             const data = await res.json();
-            if (data.user) setUser(data.user);
+            if (data.user) {
+                setUser(data.user);
+                return data.user;
+            }
+            return null;
         } catch (error) {
             console.error("Login failed:", error);
+            return null;
         }
     };
 

@@ -2,56 +2,46 @@ import React from 'react';
 
 const ProductSearchBar = ({
     search,
-    setSearch,
-    selectedCategory,
-    setSelectedCategory,
-    selectedDepartment,
-    setSelectedDepartment,
-    categories,
-    departments
+    setSearch
 }) => {
-    // Only show categories that belong to the selected department
-    const filteredCategories = selectedDepartment === 'all'
-        ? []
-        : categories.filter(cat => cat.department_id === parseInt(selectedDepartment));
-
     return (
-        <div className="product-filters" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <div className="product-filters" style={{
+            display: 'flex',
+            flexDirection: 'row', // Force single row
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 0, // No gap for seamless look
+            marginBottom: '2rem',
+            flexWrap: 'nowrap', // Prevent wrapping to new row
+            width: '100%',
+            maxWidth: 700,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+        }}>
             <input
                 type="text"
                 placeholder="Search products..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                style={{ padding: '0.5rem 1rem', borderRadius: 4, border: '1px solid #ccc', minWidth: 200 }}
-            />
-            
-            <select
-                value={selectedDepartment}
-                onChange={e => {
-                    setSelectedDepartment(e.target.value);
-                    setSelectedCategory('all'); // Reset category when department changes
+                style={{
+                    flex: '0 1 220px',
+                    minWidth: 180,
+                    maxWidth: 240,
+                    height: 44,
+                    padding: '0 1rem',
+                    borderRadius: '8px 0 0 8px',
+                    border: '1.5px solid #b3c6e0',
+                    borderRight: 'none',
+                    fontSize: 16,
+                    background: '#fff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    outline: 'none',
+                    transition: 'border 0.2s',
                 }}
-                style={{ padding: '0.5rem 1rem', borderRadius: 4, border: '1px solid #ccc' }}
-            >
-                <option value="all">All Departments</option>
-                {departments.map(dep => (
-                    <option key={dep.id} value={dep.id}>{dep.name}</option>
-                ))}
-            </select>
-
-            {selectedDepartment !== 'all' && (
-                <select
-                    value={selectedCategory}
-                    onChange={e => setSelectedCategory(e.target.value)}
-                    style={{ padding: '0.5rem 1rem', borderRadius: 4, border: '1px solid #ccc' }}
-                >
-                    <option value="all">All Categories</option>
-                    {filteredCategories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                </select>
-            )}
-            
+                onFocus={e => e.target.style.border = '2px solid #007bff'}
+                onBlur={e => e.target.style.border = '1.5px solid #b3c6e0'}
+            />
+            {/* Dropdowns will be rendered to the right in ProductPage.jsx and should use borderRadius: '0 8px 8px 0' for the first dropdown, and '0' for the last if needed, to match */}
         </div>
     );
 };
