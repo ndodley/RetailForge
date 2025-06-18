@@ -15,6 +15,8 @@ import RegisterPage from './pages/auth/RegisterPage'; // ✅ Added User Registra
 import AdminRegisterPage from './pages/auth/AdminRegisterPage'; // ✅ Added Manager Registration Page
 import PrivateRoute from './pages/auth/PrivateRoute'; // ✅ Added Protected Route Logic
 import { AuthProvider } from './context/AuthContext'; // ✅ Added Authentication Context
+import ProductPage from './pages/ProductPage';
+import ProductInfoPage from './pages/ProductInfoPage';
 
 function App() {
     return (
@@ -43,6 +45,10 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/admin/register" element={<PrivateRoute element={<AdminRegisterPage />} />} />
+
+                    {/* Public Product Routes */}
+                    <Route path="/products" element={<ProductPage />} />
+                    <Route path="/products/:id" element={<ProductInfoPage />} />
                 </Routes>
             </Router>
         </AuthProvider>

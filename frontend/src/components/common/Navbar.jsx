@@ -23,6 +23,8 @@ function Navbar() {
                         </ul>
                     </li>
                 )}
+                
+                <li><Link to="/products">Products</Link></li>
 
                 {/* ✅ Fully Right-Aligned User Info */}
                 <li className="right-section">

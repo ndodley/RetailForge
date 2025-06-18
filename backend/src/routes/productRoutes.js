@@ -14,11 +14,19 @@ const {
 } = require('../controllers/productController');
 
 // Define routes using correctly imported Multer middleware
+// Public GET endpoints (no authentication required)
 router.get('/', handleGetAllProducts);
 router.get('/:id', handleGetProductById);
+
+// Protected endpoints (add authentication middleware if needed for admin)
+// Example: const { authMiddleware, managerOnly } = require('../middleware/authMiddleware');
+// router.post('/', authMiddleware, managerOnly, server.upload.single('image'), handleCreateProduct);
+// router.put('/:id', authMiddleware, managerOnly, server.upload.single('image'), handleUpdateProduct);
+// router.delete('/:id', authMiddleware, managerOnly, handleDeleteProduct);
+
+// For now, keep them public for testing/demo:
 router.post('/', server.upload.single('image'), handleCreateProduct);
-//console.log('createProduct route after:', handleCreateProduct); // ✅ Debugging Check
-router.put('/:id', server.upload.single('image'), handleUpdateProduct); // ✅ Works now
+router.put('/:id', server.upload.single('image'), handleUpdateProduct);
 router.delete('/:id', handleDeleteProduct);
 
 module.exports = router;
