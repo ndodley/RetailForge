@@ -11,16 +11,30 @@ const UpsertProduct = () => {
         price: '',
         stock: '',
         category_id: '',
+        department_id: '', // Add department_id to formData
     });
     const [categories, setCategories] = useState([]);
+    const [departments, setDepartments] = useState([]); // Add departments state
     const [imageFile, setImageFile] = useState(null);
 
-    // ✅ Fetch categories for dropdown
+    // ✅ Fetch departments for dropdown
+    useEffect(() => {
+        axios.get('http://localhost:5000/api/departments')
+            .then((response) => setDepartments(response.data))
+            .catch((error) => console.error('❌ Error fetching departments:', error));
+    }, []);
+
+    // ✅ Fetch categories for dropdown (filtered by department)
     useEffect(() => {
         axios.get('http://localhost:5000/api/categories')
             .then((response) => setCategories(response.data))
             .catch((error) => console.error('❌ Error fetching categories:', error));
     }, []);
+
+    // Filter categories by selected department
+    const filteredCategories = formData.department_id
+        ? categories.filter(cat => parseInt(cat.department_id) === parseInt(formData.department_id))
+        : categories;
 
     // ✅ Fetch product data if editing
     useEffect(() => {
@@ -76,8 +90,42 @@ const UpsertProduct = () => {
         <div>
             <h2>{id ? 'Edit Product' : 'Add New Product'}</h2>
             <form onSubmit={handleSubmit}>
+                {/* Department Dropdown */}
+                <label>
+                    Department:
+                    <select
+                        name="department_id"
+                        value={formData.department_id || ''}
+                        onChange={e => {
+                            setFormData({ ...formData, department_id: e.target.value, category_id: '' });
+                        }}
+                        required
+                    >
+                        <option value="">Select a department</option>
+                        {departments.map(dep => (
+                            <option key={dep.id} value={dep.id}>{dep.name}</option>
+                        ))}
+                    </select>
+                </label>
+                {/* Category Dropdown (filtered by department) */}
+                <label>
+                    Category:
+                    <select
+                        name="category_id"
+                        value={formData.category_id || ''}
+                        onChange={handleChange}
+                        required
+                        disabled={!formData.department_id}
+                    >
+                        <option value="">Select a category</option>
+                        {filteredCategories.map(category => (
+                            <option key={category.id} value={category.id}>{category.name}</option>
+                        ))}
+                    </select>
+                </label>
+
                 {Object.keys(formData).map((key) => (
-                    key !== "category_id" && (
+                    key !== "category_id" && key !== "department_id" && (
                         <label key={key}>
                             {key.charAt(0).toUpperCase() + key.slice(1)}:
                             <input
@@ -90,18 +138,6 @@ const UpsertProduct = () => {
                         </label>
                     )
                 ))}
-
-                <label>
-                    Category:
-                    <select name="category_id" value={formData.category_id} onChange={handleChange} required>
-                        <option value="">Select a category</option>
-                        {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                                {category.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
 
                 <label>
                     Image (optional):
