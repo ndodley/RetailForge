@@ -79,6 +79,7 @@ const productRoutes = require('./routes/productRoutes');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const shoppingCartRoutes = require('./routes/shoppingCartRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 //console.log('departmentRoutes'); // ✅ Debugging Check
 //console.log('categoryRoutes'); // ✅ Debugging Check
@@ -89,10 +90,10 @@ const shoppingCartRoutes = require('./routes/shoppingCartRoutes');
 app.use('/api/departments', departmentRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
-
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', shoppingCartRoutes);
+app.use('/api/orders', orderRoutes);
 
 
 
