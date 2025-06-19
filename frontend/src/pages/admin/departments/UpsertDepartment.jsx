@@ -34,19 +34,25 @@ const UpsertDepartment = () => {
     };
 
     return (
-        <div>
-            <h2>{id ? 'Edit Department' : 'Add New Department'}</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Name:
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-                    </label>
-                    <button type="submit">{id ? 'Update Department' : 'Add Department'}</button>
-                </div>
-                <div>
-                    <button type="button" onClick={() => navigate('/admin/departments')}>Go Back</button> {/* ✅ Added Go Back */}
-                </div>
-            </form>
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            padding: 0,
+        }}>
+            <div>
+                <h2>{id ? 'Edit Department' : 'Add New Department'}</h2>
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <label>Name:
+                            <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                        </label>
+                        <button type="submit">{id ? 'Update Department' : 'Add Department'}</button>
+                    </div>
+                    <div>
+                        <button type="button" onClick={() => navigate('/admin/departments')}>Go Back</button> {/* ✅ Added Go Back */}
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

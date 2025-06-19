@@ -10,7 +10,11 @@ const PrivateRoute = ({ element }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    return element;
+    return (
+        <div className="homepage-background">
+            {element}
+        </div>
+    );
 };
 
 export default PrivateRoute;
