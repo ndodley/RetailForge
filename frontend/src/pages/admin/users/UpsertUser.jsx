@@ -42,42 +42,48 @@ const UpsertUser = () => {
     };
 
     return (
-        <div>
-            <h2>{id ? "Edit User" : "Add New User"}</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>First Name:
-                        <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required />
-                    </label>
-                </div>
-                <div>
-                    <label>Last Name:
-                        <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required />
-                    </label>
-                </div>
-                <div>
-                    <label>Email:
-                        <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-                    </label>
-                </div>
-                <div>
-                    <label>Password:
-                        <input type="password" name="password" value={formData.password} onChange={handleChange} required />
-                    </label>
-                </div>
-                <div>
-                    <label>Phone Number:
-                        <input type="text" name="phone_number" value={formData.phone_number} onChange={handleChange} />
-                    </label>
-                </div>
-                <div>
-                    <label>Address:
-                        <textarea name="address" value={formData.address} onChange={handleChange} />
-                    </label>
-                </div>
-                <button type="submit">{id ? "Update User" : "Add User"}</button>
-                <button type="button" onClick={() => navigate("/admin/users")}>Go Back</button>
-            </form>
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            padding: 0,
+        }}>
+            <div>
+                <h2>{id ? "Edit User" : "Add New User"}</h2>
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <label>First Name:
+                            <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required />
+                        </label>
+                    </div>
+                    <div>
+                        <label>Last Name:
+                            <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required />
+                        </label>
+                    </div>
+                    <div>
+                        <label>Email:
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+                        </label>
+                    </div>
+                    <div>
+                        <label>Password:
+                            <input type="password" name="password" value={formData.password} onChange={handleChange} required />
+                        </label>
+                    </div>
+                    <div>
+                        <label>Phone Number:
+                            <input type="text" name="phone_number" value={formData.phone_number} onChange={handleChange} />
+                        </label>
+                    </div>
+                    <div>
+                        <label>Address:
+                            <textarea name="address" value={formData.address} onChange={handleChange} />
+                        </label>
+                    </div>
+                    <button type="submit">{id ? "Update User" : "Add User"}</button>
+                    <button type="button" onClick={() => navigate("/admin/users")}>Go Back</button>
+                </form>
+            </div>
         </div>
     );
 };

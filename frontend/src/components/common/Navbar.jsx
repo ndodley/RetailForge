@@ -1,49 +1,92 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./Navbar.css";
 
 function Navbar() {
-    const { user, logout } = useAuth(); 
+    const { user, logout } = useAuth();
+    const location = useLocation();
 
     return (
-        <nav>
-            <ul className="navbar">
-                <li className="project-title"><Link to="/">Department Store</Link></li>
-
-                {/* ✅ Admin Dropdown for Managers */}
+        <nav style={{
+            background: 'linear-gradient(90deg, #181818 60%, #232526 100%)',
+            borderRadius: 18,
+            margin: '18px auto 32px auto',
+            maxWidth: 1200,
+            padding: '0.5rem 2.5rem',
+            position: 'relative',
+            zIndex: 10,
+            border: 'none',
+            boxShadow: '0 2px 8px rgba(255,140,0,0.10)'
+        }}>
+            <ul style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                listStyle: 'none',
+                margin: 0,
+                padding: 0,
+                gap: 18
+            }}>
+                <li style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: '#ff9800', marginRight: 32 }}>
+                    <Link to="/" style={{ textDecoration: 'none', color: '#ff9800', borderBottom: location.pathname === '/' ? '2.5px solid #ff9800' : '2.5px solid transparent', paddingBottom: 2, transition: 'border 0.2s' }}>Department Store</Link>
+                </li>
+                {/* Admin Dropdown for Managers */}
                 {user?.role === "manager" && (
-                    <li className="dropdown">
-                        <span>Admin ▼</span>
-                        <ul className="dropdown-menu">
-                            <li><Link to="/admin/departments">Departments</Link></li>
-                            <li><Link to="/admin/categories">Categories</Link></li>
-                            <li><Link to="/admin/products">Products</Link></li>
-                            <li><Link to="/admin/users">Users</Link></li> {/* ✅ Added Users tab */}
+                    <li style={{ position: 'relative', marginRight: 18 }}>
+                        <span style={{ fontWeight: 600, cursor: 'pointer', color: '#fff', padding: '8px 16px', borderRadius: 8, transition: 'background 0.2s' }}>
+                            Admin <span style={{ fontSize: 16 }}>▼</span>
+                        </span>
+                        <ul style={{
+                            position: 'absolute',
+                            top: 38,
+                            left: 0,
+                            background: '#232526',
+                            border: '1.5px solid #ff9800',
+                            borderRadius: 10,
+                            boxShadow: '0 4px 16px rgba(255,140,0,0.10)',
+                            padding: 0,
+                            margin: 0,
+                            minWidth: 170,
+                            zIndex: 100,
+                            display: 'none',
+                        }} className="navbar-admin-dropdown">
+                            <li><Link to="/admin/departments" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Departments</Link></li>
+                            <li><Link to="/admin/categories" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Categories</Link></li>
+                            <li><Link to="/admin/products" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
+                            <li><Link to="/admin/users" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Users</Link></li>
                         </ul>
                     </li>
                 )}
-                
-                <li><Link to="/products">Products</Link></li>
-
-                {/* Shopping Cart Icon Link */}
-                <li>
-                    <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center' }}>
+                <li style={{ marginRight: 18 }}>
+                    <Link to="/products" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname.startsWith('/products') ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Products</Link>
+                </li>
+                <li style={{ marginRight: 18 }}>
+                    <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center', color: '#ff9800', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/cart' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>
                         <span role="img" aria-label="cart" style={{ marginRight: 4 }}>🛒</span>
                     </Link>
                 </li>
-
-                {/* ✅ Fully Right-Aligned User Info */}
-                <li className="right-section">
+                <li style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
                     {user ? (
-                        <>
-                            <span className="welcome-text">Welcome, {user.first_name}!</span>
-                            <button className="logout-btn" onClick={logout}>Logout</button>
-                        </>
+                        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,152,0,0.12)', borderRadius: 999, padding: '6px 18px', boxShadow: '0 1px 4px rgba(255,140,0,0.04)' }}>
+                            <span style={{ color: '#fff', fontWeight: 600, fontSize: 16, marginRight: 8 }}>Welcome, {user.first_name}!</span>
+                            <button onClick={logout} style={{
+                                background: 'linear-gradient(90deg, #ff9800 60%, #ff5722 100%)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 8,
+                                padding: '8px 22px',
+                                fontWeight: 700,
+                                fontSize: 16,
+                                boxShadow: '0 2px 8px rgba(255,140,0,0.08)',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s, box-shadow 0.2s',
+                            }}>Logout</button>
+                        </div>
                     ) : (
                         <>
-                            <Link to="/login">Login</Link>
-                            <Link to="/register">Register</Link>
+                            <Link to="/login" style={{ color: '#ff9800', textDecoration: 'none', fontWeight: 700, fontSize: 16, padding: '8px 18px', borderRadius: 8, borderBottom: location.pathname === '/login' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Login</Link>
+                            <Link to="/register" style={{ color: '#ff9800', textDecoration: 'none', fontWeight: 700, fontSize: 16, padding: '8px 18px', borderRadius: 8, borderBottom: location.pathname === '/register' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Register</Link>
                         </>
                     )}
                 </li>

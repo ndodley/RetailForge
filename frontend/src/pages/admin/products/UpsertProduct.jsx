@@ -87,71 +87,77 @@ const UpsertProduct = () => {
     };
 
     return (
-        <div>
-            <h2>{id ? 'Edit Product' : 'Add New Product'}</h2>
-            <form onSubmit={handleSubmit}>
-                {/* Department Dropdown */}
-                <label>
-                    Department:
-                    <select
-                        name="department_id"
-                        value={formData.department_id || ''}
-                        onChange={e => {
-                            setFormData({ ...formData, department_id: e.target.value, category_id: '' });
-                        }}
-                        required
-                    >
-                        <option value="">Select a department</option>
-                        {departments.map(dep => (
-                            <option key={dep.id} value={dep.id}>{dep.name}</option>
-                        ))}
-                    </select>
-                </label>
-                {/* Category Dropdown (filtered by department) */}
-                <label>
-                    Category:
-                    <select
-                        name="category_id"
-                        value={formData.category_id || ''}
-                        onChange={handleChange}
-                        required
-                        disabled={!formData.department_id}
-                    >
-                        <option value="">Select a category</option>
-                        {filteredCategories.map(category => (
-                            <option key={category.id} value={category.id}>{category.name}</option>
-                        ))}
-                    </select>
-                </label>
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            padding: 0,
+        }}>
+            <div>
+                <h2>{id ? 'Edit Product' : 'Add New Product'}</h2>
+                <form onSubmit={handleSubmit}>
+                    {/* Department Dropdown */}
+                    <label>
+                        Department:
+                        <select
+                            name="department_id"
+                            value={formData.department_id || ''}
+                            onChange={e => {
+                                setFormData({ ...formData, department_id: e.target.value, category_id: '' });
+                            }}
+                            required
+                        >
+                            <option value="">Select a department</option>
+                            {departments.map(dep => (
+                                <option key={dep.id} value={dep.id}>{dep.name}</option>
+                            ))}
+                        </select>
+                    </label>
+                    {/* Category Dropdown (filtered by department) */}
+                    <label>
+                        Category:
+                        <select
+                            name="category_id"
+                            value={formData.category_id || ''}
+                            onChange={handleChange}
+                            required
+                            disabled={!formData.department_id}
+                        >
+                            <option value="">Select a category</option>
+                            {filteredCategories.map(category => (
+                                <option key={category.id} value={category.id}>{category.name}</option>
+                            ))}
+                        </select>
+                    </label>
 
-                {Object.keys(formData).map((key) => (
-                    key !== "category_id" && key !== "department_id" && (
-                        <label key={key}>
-                            {key.charAt(0).toUpperCase() + key.slice(1)}:
-                            <input
-                                type={key === 'price' || key === 'stock' ? 'number' : 'text'}
-                                name={key}
-                                value={formData[key]}
-                                onChange={handleChange}
-                                required
-                            />
-                        </label>
-                    )
-                ))}
+                    {Object.keys(formData).map((key) => (
+                        key !== "category_id" && key !== "department_id" && (
+                            <label key={key}>
+                                {key.charAt(0).toUpperCase() + key.slice(1)}:
+                                <input
+                                    type={key === 'price' || key === 'stock' ? 'number' : 'text'}
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </label>
+                        )
+                    ))}
 
-                <label>
-                    Image (optional):
-                    <input
-                        type="file"
-                        name="image"
-                        accept="image/png, image/jpeg"
-                        onChange={handleFileChange}
-                    />
-                </label>
+                    <label>
+                        Image (optional):
+                        <input
+                            type="file"
+                            name="image"
+                            accept="image/png, image/jpeg"
+                            onChange={handleFileChange}
+                        />
+                    </label>
 
-                <button type="submit">{id ? 'Update Product' : 'Add Product'}</button>
-                <button type="button" onClick={() => navigate('/admin/products')}>Go Back</button> {/* ✅ Added Go Back */}
-            </form>
+                    <button type="submit">{id ? 'Update Product' : 'Add Product'}</button>
+                    <button type="button" onClick={() => navigate('/admin/products')}>Go Back</button> {/* ✅ Added Go Back */}
+                </form>
+            </div>
         </div>
     );
 };

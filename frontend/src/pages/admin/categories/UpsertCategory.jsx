@@ -45,34 +45,40 @@ const UpsertCategory = () => {
     };
 
     return (
-        <div>
-            <h2>{id ? 'Edit Category' : 'Add New Category'}</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
+        <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            padding: 0,
+        }}>
+            <div>
+                <h2>{id ? 'Edit Category' : 'Add New Category'}</h2>
+                <form onSubmit={handleSubmit}>
                     <div>
-                        <label>Name:
-                            <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-                        </label>
+                        <div>
+                            <label>Name:
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                            </label>
+                        </div>
+                        <div>
+                            <label>Description:
+                                <textarea name="description" value={formData.description} onChange={handleChange} required />
+                            </label>
+                        </div>
+                        <div>
+                            <label>Department:
+                                <select name="department_id" value={formData.department_id} onChange={handleChange} required>
+                                    <option value="">Select a Department</option>
+                                    {departments.map((dept) => (
+                                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label>Description:
-                            <textarea name="description" value={formData.description} onChange={handleChange} required />
-                        </label>
-                    </div>
-                    <div>
-                        <label>Department:
-                            <select name="department_id" value={formData.department_id} onChange={handleChange} required>
-                                <option value="">Select a Department</option>
-                                {departments.map((dept) => (
-                                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                                ))}
-                            </select>
-                        </label>
-                    </div>
-                </div>
-                <button type="submit">{id ? 'Update Category' : 'Add Category'}</button>
-                <button type="button" onClick={() => navigate('/admin/categories')}>Go Back</button> {/* ✅ Added Go Back */}
-            </form>
+                    <button type="submit">{id ? 'Update Category' : 'Add Category'}</button>
+                    <button type="button" onClick={() => navigate('/admin/categories')}>Go Back</button> {/* ✅ Added Go Back */}
+                </form>
+            </div>
         </div>
     );
 };
