@@ -1,5 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// Import Stripe Elements and loadStripe for Stripe context
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
 import Home from './pages/Home';
 import DepartmentList from './pages/admin/departments/DepartmentList';
 import UpsertDepartment from './pages/admin/departments/UpsertDepartment';
@@ -18,40 +22,51 @@ import { AuthProvider } from './context/AuthContext'; // ✅ Added Authenticatio
 import ProductPage from './pages/ProductPage';
 import ProductInfoPage from './pages/ProductInfoPage';
 import ShoppingCartPage from './pages/ShoppingCartPage';
+import CheckoutPage from './pages/CheckoutPage'; // Import CheckoutPage for Stripe payment integration
+
+// Initialize Stripe with your publishable key (safe for frontend)
+const stripePromise = loadStripe('pk_test_51RbrrTQDAYM6vQvxYur66oTn8OVcvLDsXj3HG1VCW2lDX4ZlaEdwfv8vvGEUUwwUAkH8jShEU3vzG6VrrpNDFhUV0016IMOnlA');
 
 function App() {
     return (
+        // Provide authentication context to the app
         <AuthProvider>
             <Router>
-                <Navbar />
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/admin/departments" element={<DepartmentList />} />
-                    <Route path="/admin/departments/upsert" element={<UpsertDepartment />} />
-                    <Route path="/admin/departments/upsert/:id" element={<UpsertDepartment />} />
+                {/* Wrap the app in <Elements> to provide Stripe context to all components */}
+                <Elements stripe={stripePromise}>
+                    <Navbar />
+                    <Routes>
+                        {/* Main and admin routes */}
+                        <Route path="/" element={<Home />} />
+                        <Route path="/admin/departments" element={<DepartmentList />} />
+                        <Route path="/admin/departments/upsert" element={<UpsertDepartment />} />
+                        <Route path="/admin/departments/upsert/:id" element={<UpsertDepartment />} />
 
-                    <Route path="/admin/categories" element={<CategoryList />} />
-                    <Route path="/admin/categories/upsert" element={<UpsertCategory />} />
-                    <Route path="/admin/categories/upsert/:id" element={<UpsertCategory />} />
+                        <Route path="/admin/categories" element={<CategoryList />} />
+                        <Route path="/admin/categories/upsert" element={<UpsertCategory />} />
+                        <Route path="/admin/categories/upsert/:id" element={<UpsertCategory />} />
 
-                    <Route path="/admin/products" element={<ProductList />} />
-                    <Route path="/admin/products/upsert" element={<UpsertProduct />} />
-                    <Route path="/admin/products/upsert/:id" element={<UpsertProduct />} />
+                        <Route path="/admin/products" element={<ProductList />} />
+                        <Route path="/admin/products/upsert" element={<UpsertProduct />} />
+                        <Route path="/admin/products/upsert/:id" element={<UpsertProduct />} />
 
-                    <Route path="/admin/users" element={<UserList />} />
-                    <Route path="/admin/users/upsert" element={<UpsertUser />} />
-                    <Route path="/admin/users/upsert/:id" element={<UpsertUser />} />
+                        <Route path="/admin/users" element={<UserList />} />
+                        <Route path="/admin/users/upsert" element={<UpsertUser />} />
+                        <Route path="/admin/users/upsert/:id" element={<UpsertUser />} />
 
-                    {/* ✅ Authentication Routes */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/admin/register" element={<PrivateRoute element={<AdminRegisterPage />} />} />
+                        {/* ✅ Authentication Routes */}
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/admin/register" element={<PrivateRoute element={<AdminRegisterPage />} />} />
 
-                    {/* Public Product Routes */}
-                    <Route path="/products" element={<ProductPage />} />
-                    <Route path="/products/:id" element={<ProductInfoPage />} />
-                    <Route path="/cart" element={<ShoppingCartPage />} />
-                </Routes>
+                        {/* Public Product Routes */}
+                        <Route path="/products" element={<ProductPage />} />
+                        <Route path="/products/:id" element={<ProductInfoPage />} />
+                        <Route path="/cart" element={<ShoppingCartPage />} />
+                        {/* Stripe Checkout Route for payment */}
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                    </Routes>
+                </Elements>
             </Router>
         </AuthProvider>
     );

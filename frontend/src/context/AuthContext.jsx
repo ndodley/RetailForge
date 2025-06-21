@@ -13,13 +13,23 @@ export const AuthProvider = ({ children }) => {
                     credentials: 'include' // ✅ Ensures session cookies are sent
                 });
 
-                if (!res.ok) throw new Error(`Error: ${res.status} ${res.statusText}`);
+                if (!res.ok) {
+                    // If 401 Unauthorized, do not log error (user is simply not logged in)
+                    if (res.status !== 401) {
+                        throw new Error(`Error: ${res.status} ${res.statusText}`);
+                    }
+                    // Not logged in, just return
+                    return;
+                }
 
                 const data = await res.json();
                 if (data.user) setUser(data.user);
             } 
             catch (error) {
-                console.error("Session retrieval failed:", error);
+                // Only log errors that are not 401 Unauthorized
+                if (!error.message.includes('401')) {
+                    console.error("Session retrieval failed:", error);
+                }
             }
         };
 
