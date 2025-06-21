@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./Navbar.css";
@@ -6,6 +6,18 @@ import "./Navbar.css";
 function Navbar() {
     const { user, logout } = useAuth();
     const location = useLocation();
+    const [adminOpen, setAdminOpen] = useState(false); // State for admin dropdown
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClick = (e) => {
+            if (!e.target.closest('.admin-dropdown-parent')) {
+                setAdminOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
 
     return (
         <nav style={{
@@ -31,26 +43,32 @@ function Navbar() {
                 <li style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: '#ff9800', marginRight: 32 }}>
                     <Link to="/" style={{ textDecoration: 'none', color: '#ff9800', borderBottom: location.pathname === '/' ? '2.5px solid #ff9800' : '2.5px solid transparent', paddingBottom: 2, transition: 'border 0.2s' }}>Department Store</Link>
                 </li>
-                {/* Admin Dropdown for Managers */}
-                {user?.role === "manager" && (
-                    <li style={{ position: 'relative', marginRight: 18 }}>
-                        <span style={{ fontWeight: 600, cursor: 'pointer', color: '#fff', padding: '8px 16px', borderRadius: 8, transition: 'background 0.2s' }}>
+                {/* Admin Dropdown for Managers or Admins, only if logged in */}
+                {user && (user.role === "manager" || user.role === "admin") && (
+                    <li className="admin-dropdown-parent" style={{ position: 'relative', marginRight: 18 }}>
+                        <span
+                            style={{ fontWeight: 600, cursor: 'pointer', color: '#fff', padding: '8px 16px', borderRadius: 8, transition: 'background 0.2s' }}
+                            onClick={() => setAdminOpen((open) => !open)}
+                        >
                             Admin <span style={{ fontSize: 16 }}>▼</span>
                         </span>
-                        <ul style={{
-                            position: 'absolute',
-                            top: 38,
-                            left: 0,
-                            background: '#232526',
-                            border: '1.5px solid #ff9800',
-                            borderRadius: 10,
-                            boxShadow: '0 4px 16px rgba(255,140,0,0.10)',
-                            padding: 0,
-                            margin: 0,
-                            minWidth: 170,
-                            zIndex: 100,
-                            display: 'none',
-                        }} className="navbar-admin-dropdown">
+                        <ul
+                            className="navbar-admin-dropdown"
+                            style={{
+                                position: 'absolute',
+                                top: 38,
+                                left: 0,
+                                background: '#232526',
+                                border: '1.5px solid #ff9800',
+                                borderRadius: 10,
+                                boxShadow: '0 4px 16px rgba(255,140,0,0.10)',
+                                padding: 0,
+                                margin: 0,
+                                minWidth: 170,
+                                zIndex: 100,
+                                display: adminOpen ? 'block' : 'none',
+                            }}
+                        >
                             <li><Link to="/admin/departments" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Departments</Link></li>
                             <li><Link to="/admin/categories" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Categories</Link></li>
                             <li><Link to="/admin/products" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
@@ -61,6 +79,7 @@ function Navbar() {
                 <li style={{ marginRight: 18 }}>
                     <Link to="/products" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname.startsWith('/products') ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Products</Link>
                 </li>
+                {/* Shopping Cart without product count */}
                 <li style={{ marginRight: 18 }}>
                     <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center', color: '#ff9800', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/cart' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>
                         <span role="img" aria-label="cart" style={{ marginRight: 4 }}>🛒</span>

@@ -165,6 +165,26 @@ const ShoppingCartPage = () => {
                             Cart Total: <span style={{ color: '#28a745' }}>${cartTotal.toFixed(2)}</span>
                         </div>
                     </div>
+                    {/* Proceed to Checkout Button */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+                        <button
+                            style={{
+                                background: 'linear-gradient(90deg, #635bff 60%, #4437c7 100%)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 8,
+                                padding: '14px 36px',
+                                fontWeight: 600,
+                                fontSize: 18,
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 8px rgba(99,91,255,0.08)',
+                                marginLeft: 16
+                            }}
+                            onClick={() => navigate('/checkout', { state: { cartTotal, cartItems } })}
+                        >
+                            Proceed to Checkout
+                        </button>
+                    </div>
                     </>
                 )}
             </div>
