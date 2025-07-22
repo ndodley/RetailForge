@@ -4,6 +4,7 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // <-- Add loading state
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -18,7 +19,8 @@ export const AuthProvider = ({ children }) => {
                     if (res.status !== 401) {
                         throw new Error(`Error: ${res.status} ${res.statusText}`);
                     }
-                    // Not logged in, just return
+                    setUser(null);
+                    setLoading(false); // <-- Set loading false even if not logged in
                     return;
                 }
 
@@ -30,9 +32,10 @@ export const AuthProvider = ({ children }) => {
                 if (!error.message.includes('401')) {
                     console.error("Session retrieval failed:", error);
                 }
+            } finally {
+                setLoading(false); // <-- Always set loading false
             }
         };
-
 
         fetchUser();
     }, []);
@@ -92,12 +95,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        await fetch('http://localhost:5000/api/auth/logout', { method: 'POST' });
+        await fetch('http://localhost:5000/api/auth/logout', { method: 'POST', credentials: 'include' }); // <-- Ensure credentials are included
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

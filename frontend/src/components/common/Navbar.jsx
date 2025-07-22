@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./Navbar.css";
 
 function Navbar() {
     const { user, logout } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate(); // <-- Add navigate
     const [adminOpen, setAdminOpen] = useState(false); // State for admin dropdown
 
     // Close dropdown when clicking outside
@@ -18,6 +19,14 @@ function Navbar() {
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
+
+    const handleLogout = async () => {
+        await logout();
+        // If admin and on an admin page, redirect to home
+        if (user && (user.role === 'admin' || user.role === 'manager') && location.pathname.startsWith('/admin/')) {
+            navigate('/');
+        }
+    };
 
     return (
         <nav style={{
@@ -69,10 +78,10 @@ function Navbar() {
                                 display: adminOpen ? 'block' : 'none',
                             }}
                         >
-                            <li><Link to="/admin/departments" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Departments</Link></li>
-                            <li><Link to="/admin/categories" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Categories</Link></li>
-                            <li><Link to="/admin/products" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
-                            <li><Link to="/admin/users" style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Users</Link></li>
+                            <li><Link to="/admin/departments" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Departments</Link></li>
+                            <li><Link to="/admin/categories" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Categories</Link></li>
+                            <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
+                            <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Users</Link></li>
                         </ul>
                     </li>
                 )}
@@ -89,7 +98,7 @@ function Navbar() {
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,152,0,0.12)', borderRadius: 999, padding: '6px 18px', boxShadow: '0 1px 4px rgba(255,140,0,0.04)' }}>
                             <span style={{ color: '#fff', fontWeight: 600, fontSize: 16, marginRight: 8 }}>Welcome, {user.first_name}!</span>
-                            <button onClick={logout} style={{
+                            <button onClick={handleLogout} style={{
                                 background: 'linear-gradient(90deg, #ff9800 60%, #ff5722 100%)',
                                 color: '#fff',
                                 border: 'none',
