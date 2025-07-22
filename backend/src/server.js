@@ -6,6 +6,8 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const pgSession = require('connect-pg-simple')(session);
+const pool = require('./db'); // Use your existing pool
 
 const app = express();
 console.log('app'); // ✅ Debugging Check
@@ -48,15 +50,19 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// ✅ Enable session storage
+// ✅ Enable persistent session storage using connect-pg-simple
 app.use(session({
+    store: new pgSession({
+        pool: pool,                // Use your existing PostgreSQL pool
+        tableName: 'session'       // Default table name for sessions
+    }),
     secret: 'your_secret_key',        // ✅ Change to a secure key
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,               // ✅ Prevents XSS attacks
         secure: false,                // ✅ Set `true` in production with HTTPS
-        sameSite: 'none'                // ✅ Change 'lax' to 'none' (fixes missing session in cross-origin requests)
+        sameSite: 'lax'               // ✅ Use 'lax' for local development (HTTP)
     }
 }));
 

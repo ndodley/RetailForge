@@ -4,26 +4,26 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const ShoppingCartPage = () => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth(); // <-- Get loading from context
     const navigate = useNavigate();
     const location = useLocation();
     const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingCart, setLoadingCart] = useState(true);
     const [error, setError] = useState(null);
 
     // Enforce login for cart page
     useEffect(() => {
-        if (!user) {
+        if (!loading && !user) { // <-- Only redirect if loading is false and user is null
             navigate('/login', { state: { from: { pathname: location.pathname, search: location.search } }, replace: true });
             return;
         }
-    }, [user, navigate, location]);
+    }, [user, loading, navigate, location]);
 
     useEffect(() => {
         const fetchCart = async () => {
             if (!user) {
                 setCartItems([]);
-                setLoading(false);
+                setLoadingCart(false);
                 return;
             }
             try {
@@ -36,10 +36,10 @@ const ShoppingCartPage = () => {
             } catch (err) {
                 setError("Failed to load cart");
             } finally {
-                setLoading(false);
+                setLoadingCart(false);
             }
         };
-        fetchCart();
+        if (user) fetchCart();
     }, [user]);
 
     // Add: get cart id for update/remove
@@ -82,7 +82,7 @@ const ShoppingCartPage = () => {
         }
     };
 
-    if (loading) return <div>Loading cart...</div>;
+    if (loading || loadingCart) return <div>Loading cart...</div>; // <-- Show loading until both are done
     if (error) return <div>{error}</div>;
 
     const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
