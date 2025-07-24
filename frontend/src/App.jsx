@@ -23,6 +23,7 @@ import ProductPage from './pages/ProductPage';
 import ProductInfoPage from './pages/ProductInfoPage';
 import ShoppingCartPage from './pages/ShoppingCartPage';
 import CheckoutPage from './pages/CheckoutPage'; // Import CheckoutPage for Stripe payment integration
+import OrderConfirmation from './pages/OrderConfirmation';
 
 // Initialize Stripe with your publishable key (safe for frontend)
 const stripePromise = loadStripe('pk_test_51RbrrTQDAYM6vQvxYur66oTn8OVcvLDsXj3HG1VCW2lDX4ZlaEdwfv8vvGEUUwwUAkH8jShEU3vzG6VrrpNDFhUV0016IMOnlA');
@@ -65,6 +66,7 @@ function App() {
                         <Route path="/cart" element={<ShoppingCartPage />} />
                         {/* Stripe Checkout Route for payment */}
                         <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/order-confirmation" element={<OrderConfirmation />} />
                     </Routes>
                 </Elements>
             </Router>
