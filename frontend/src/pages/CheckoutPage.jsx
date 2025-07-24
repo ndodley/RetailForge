@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
 import { useLocation } from "react-router-dom";
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import axios from "axios";
@@ -6,11 +8,15 @@ import axios from "axios";
 const CheckoutPage = () => {
     const location = useLocation();
     const { cartTotal, cartItems } = location.state || {};
+    const navigate = useNavigate();
     const stripe = useStripe();
     const elements = useElements();
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [address, setAddress] = useState('');
+    const [localCartItems, setLocalCartItems] = useState(cartItems || []);
+    const { user } = useAuth();
 
     // Handle Stripe payment form submission
     const handleSubmit = async (e) => {
@@ -35,8 +41,19 @@ const CheckoutPage = () => {
             if (result.error) {
                 setError(result.error.message);
             } else if (result.paymentIntent.status === 'succeeded') {
-                setSuccess('Payment successful! Thank you for your purchase.');
-                // TODO: Place order, clear cart, etc.
+                // Place order in backend
+                try {
+                    const orderRes = await axios.post('http://localhost:5000/api/payment/complete-checkout', {
+                        user_id: user?.id,
+                        address
+                    });
+                    // Clear cart in frontend state
+                    setLocalCartItems([]);
+                    // Redirect to order confirmation page with order details
+                    navigate('/order-confirmation', { state: { order: orderRes.data.order } });
+                } catch (orderErr) {
+                    setError('Order creation failed. Please contact support.');
+                }
             }
         } catch (err) {
             setError('Payment failed. Please try again.');
@@ -63,6 +80,15 @@ const CheckoutPage = () => {
                 </div>
                 {/* Stripe payment form */}
                 <form onSubmit={handleSubmit}>
+                    {/* Address input */}
+                    <input
+                        type="text"
+                        placeholder="Shipping Address"
+                        value={address}
+                        onChange={e => setAddress(e.target.value)}
+                        required
+                        style={{ width: '100%', marginBottom: 16, padding: 8, fontSize: 16 }}
+                    />
                     {/* CardElement securely collects card details */}
                     <CardElement options={{ style: { base: { fontSize: '18px' } } }} />
                     <button
