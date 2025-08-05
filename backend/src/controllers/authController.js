@@ -8,8 +8,10 @@ exports.login = async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' }); // ✅ Return JSON error response
     }
 
-    req.session.user = user; // ✅ Stores user in session
-    console.log("User stored in session:", req.session.user); // ✅ Debugging session storage
+    req.session.user_id = user.id; // ✅ Stores user id in session for auth
+    // Optionally, you can also store the user object if you want:
+    // req.session.user = user;
+    console.log("User id stored in session:", req.session.user_id); // ✅ Debugging session storage
 
     res.json({ message: 'Login successful', user }); // ✅ Ensure JSON response
 };
@@ -22,9 +24,16 @@ exports.logout = (req, res) => {
 exports.getUserSession = (req, res) => {
     console.log("Session Data on request:", req.session);  // ✅ Debugging session persistence
 
-    if (req.session && req.session.user) {
-        return res.json({ user: req.session.user });
+    if (req.session && req.session.user_id) {
+        // Fetch user from DB for session check
+        User.getUserById(req.session.user_id).then(user => {
+            if (user) {
+                return res.json({ user });
+            } else {
+                return res.status(401).json({ error: 'User not logged in' });
+            }
+        });
+    } else {
+        return res.status(401).json({ error: 'User not logged in' }); // ✅ Return proper error message
     }
-    
-    return res.status(401).json({ error: 'User not logged in' }); // ✅ Return proper error message
 };
