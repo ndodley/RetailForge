@@ -66,6 +66,10 @@ app.use(session({
     }
 }));
 
+// Set req.user from session if available
+const sessionUserMiddleware = require('./middleware/sessionUserMiddleware');
+app.use(sessionUserMiddleware);
+
 
 // Serve static files
 app.use('/uploads', express.static(productImagesDir)); // ✅ Ensures image files are accessible
@@ -88,6 +92,7 @@ const shoppingCartRoutes = require('./routes/shoppingCartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const orderDetailsRoutes = require('./routes/orderDetailsRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 //console.log('departmentRoutes'); // ✅ Debugging Check
 //console.log('categoryRoutes'); // ✅ Debugging Check
@@ -103,8 +108,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cart', shoppingCartRoutes);
 app.use('/api/orders', orderRoutes);
 
+
 app.use('/api/order-details', orderDetailsRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 
 
