@@ -1,3 +1,5 @@
+// The purpose of this file is to set up the Express server with session management, CORS, static file serving, and route handling.
+
 console.log('🔥 Server is starting... Logging should work!');
 
 const express = require('express');
