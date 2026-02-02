@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const OrderDetails = require('../models/OrderDetails');
 
 // Create a new order
 const handleCreateOrder = async (req, res) => {
@@ -32,6 +33,28 @@ const handleGetOrdersByUser = async (req, res) => {
     try {
         const orders = await Order.getOrdersByUser(req.params.user_id);
         res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get all orders for the currently signed-in user (from session)
+const handleGetMyOrders = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const orders = await Order.getOrdersByUser(userId);
+        const ordersWithItems = await Promise.all(
+            orders.map(async (order) => {
+                const items = await OrderDetails.getOrderDetailsByOrderId(order.id);
+                return { ...order, items };
+            })
+        );
+
+        res.json(ordersWithItems);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -74,6 +97,7 @@ module.exports = {
     handleCreateOrder,
     handleGetOrderById,
     handleGetOrdersByUser,
+    handleGetMyOrders,
     handleGetAllOrders,
     handleUpdateOrderStatus,
     handleDeleteOrder,
