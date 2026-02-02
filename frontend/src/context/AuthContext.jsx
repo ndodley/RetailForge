@@ -49,16 +49,22 @@ export const AuthProvider = ({ children }) => {
                 credentials: 'include', // Ensure session cookies are sent
             });
 
-            if (!res.ok) throw new Error(`Login failed: ${res.status} ${res.statusText}`);
+            // Backend returns 200 with { user: null, error: 'Invalid credentials' } for wrong logins.
+            // Avoid throwing/logging for this expected case.
+            if (!res.ok) {
+                return null;
+            }
 
             const data = await res.json();
-            if (data.user) {
+            if (data?.user) {
                 setUser(data.user);
                 return data.user;
             }
+
             return null;
         } catch (error) {
-            console.error("Login failed:", error);
+            // Only unexpected failures (network/server down) should be logged.
+            console.error('Login request failed:', error);
             return null;
         }
     };

@@ -10,10 +10,14 @@ const createOrderDetail = async ({ order_id, product_id, product_name, quantity,
     return result.rows[0];
 };
 
-// Get all order details for a specific order
+// Get all order details for a specific order, including product image_path
 const getOrderDetailsByOrderId = async (order_id) => {
     const result = await pool.query(
-        `SELECT * FROM order_details WHERE order_id = $1 ORDER BY id`,
+        `SELECT od.*, p.image_path
+         FROM order_details od
+         LEFT JOIN products p ON od.product_id = p.id
+         WHERE od.order_id = $1
+         ORDER BY od.id`,
         [order_id]
     );
     return result.rows;
