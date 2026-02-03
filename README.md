@@ -21,8 +21,10 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 - **Admin Dashboard**: Manage departments, categories, products, users, and reviews
 - **CRUD Operations**: Create, update, and delete all entities
-- **Order Management**: View all orders in the system
+- **Order Management**: View all orders in the system, see user emails, and inspect order details with product images
+- **Modern Admin UI**: Orders pages feature a modern, responsive table and detail view
 - **Role-Based Access**: Only managers/admins can access admin routes
+- **Refresh-Safe Auth**: Admin pages remain accessible after refresh thanks to robust session hydration
 
 ### 🗄️ Database
 
@@ -144,7 +146,11 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 - **Categories/Departments**: `/api/categories`, `/api/departments`
 - **Users/Auth**: `/api/users`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
 - **Cart**: `/api/cart`, `/api/cart/item`
-- **Orders**: `/api/orders/my` (current user), `/api/orders/user/:user_id` (admin)
+- **Orders**:
+  - `/api/orders/my` (current user)
+  - `/api/orders/user/:user_id` (admin)
+  - `/api/orders/admin` (admin/manager: all orders with user email)
+  - `/api/orders/admin/:id` (admin/manager: order details with user email and items)
 - **Order Details**: `/api/order-details/order/:order_id`
 - **Reviews**: `/api/reviews`
 
@@ -179,12 +185,13 @@ These enhancements are in progress or coming soon:
 
 ### Admin Pages
 
-- **Admin Orders page**: Admin view and management of all orders
+- **Admin Orders page**: Admin/manager can view all orders, see user emails, and inspect order details with product images (new!)
 
 ### Whole Project
 
 - **Light/Dark Mode Toggle**: Switch between light and dark themes
 - **Modernize All Pages**: Refactor all UI to use modern React best practices
+- **Refresh-Safe Auth**: All protected pages now wait for session hydration before redirecting, so admin and user pages are refresh-safe
 - **Fix Project Title**: Update and standardize the project title across all pages
 
 Want to contribute? Check the issues or project board for these features!

@@ -70,6 +70,29 @@ const handleGetAllOrders = async (req, res) => {
     }
 };
 
+// Admin: get all orders with owning user's email
+const handleGetAllOrdersAdmin = async (req, res) => {
+    try {
+        const orders = await Order.getAllOrdersWithUserEmail();
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Admin: get a single order with user email and line items
+const handleGetOrderAdminById = async (req, res) => {
+    try {
+        const order = await Order.getOrderByIdWithUserEmail(req.params.id);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        const items = await OrderDetails.getOrderDetailsByOrderId(order.id);
+        res.json({ ...order, items });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // Update the status of an order
 const handleUpdateOrderStatus = async (req, res) => {
     try {
@@ -99,6 +122,8 @@ module.exports = {
     handleGetOrdersByUser,
     handleGetMyOrders,
     handleGetAllOrders,
+    handleGetAllOrdersAdmin,
+    handleGetOrderAdminById,
     handleUpdateOrderStatus,
     handleDeleteOrder,
 };

@@ -15,6 +15,8 @@ import UserList from './pages/admin/users/UserList';
 import UpsertUser from './pages/admin/users/UpsertUser';
 import ReviewList from './pages/admin/reviews/ReviewList';
 import UpsertReview from './pages/admin/reviews/UpsertReview';
+import OrderList from './pages/admin/orders/OrderList';
+import UserOrderDetails from './pages/admin/orders/UserOrderDetails';
 import Navbar from './components/common/Navbar';
 import LoginPage from './pages/auth/LoginPage'; // ✅ Added Login Page
 import RegisterPage from './pages/auth/RegisterPage'; // ✅ Added User Registration Page
@@ -59,11 +61,13 @@ function App() {
                         <Route path="/admin/users/upsert" element={<UpsertUser />} />
                         <Route path="/admin/users/upsert/:id" element={<UpsertUser />} />
 
-
-                        {/* Review admin routes */}
                         <Route path="/admin/reviews" element={<ReviewList />} />
                         <Route path="/admin/reviews/upsert" element={<UpsertReview />} />
                         <Route path="/admin/reviews/upsert/:id" element={<UpsertReview />} />
+
+                        <Route path="/admin/orders" element={<PrivateRoute element={<OrderList />} />} />
+                        <Route path="/admin/orders/:orderId" element={<PrivateRoute element={<UserOrderDetails />} />} />
+
 
                         {/* ✅ Authentication Routes */}
                         <Route path="/login" element={<LoginPage />} />

@@ -83,6 +83,7 @@ function Navbar() {
                             <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
                             <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Users</Link></li>
                             <li><Link to="/admin/reviews" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Reviews</Link></li>
+                            <li><Link to="/admin/orders" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Orders</Link></li>
                         </ul>
                     </li>
                 )}
