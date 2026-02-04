@@ -95,6 +95,16 @@ function Navbar() {
                         <Link to="/my-orders" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/my-orders' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>My Orders</Link>
                     </li>
                 )}
+                {user && (
+                    <li style={{ marginRight: 18 }}>
+                        <Link to="/my-favorites" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/my-favorites' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>My Favorites</Link>
+                    </li>
+                )}
+                {user && (
+                    <li style={{ marginRight: 18 }}>
+                        <Link to="/my-reviews" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/my-reviews' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>My Reviews</Link>
+                    </li>
+                )}
                 {/* Shopping Cart without product count */}
                 <li style={{ marginRight: 18 }}>
                     <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center', color: '#ff9800', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/cart' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>

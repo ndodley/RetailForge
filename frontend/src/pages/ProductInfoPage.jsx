@@ -4,10 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
+import { useFavorites } from '../context/FavoritesContext';
 
 const ProductInfoPage = () => {
     const { id } = useParams();
     const { user } = useAuth();
+    const { isFavorited, toggleFavorite } = useFavorites();
     const navigate = useNavigate();
     const location = useLocation();
     const [product, setProduct] = useState(null);
@@ -15,6 +17,8 @@ const ProductInfoPage = () => {
     const [error, setError] = useState(null);
     const [inCart, setInCart] = useState(false);
     const [cartCount, setCartCount] = useState(0);
+
+    const isFavorite = product ? isFavorited(product.id) : false;
 
     useEffect(() => {
         fetch(`http://localhost:5000/api/products/${id}`)
@@ -92,6 +96,18 @@ const ProductInfoPage = () => {
             setCartCount(0);
         } catch {
             alert('Failed to remove from cart.');
+        }
+    };
+
+    const handleToggleFavorite = async () => {
+        if (!user) {
+            navigate('/login', { state: { from: { pathname: location.pathname, search: location.search } }, replace: true });
+            return;
+        }
+
+        const res = await toggleFavorite(product.id);
+        if (!res.ok && res.error) {
+            alert(res.error);
         }
     };
 
@@ -222,35 +238,52 @@ const ProductInfoPage = () => {
             <div style={{
                 maxWidth: 1000,
                 margin: '2.5rem auto',
-                padding: '2.5rem 1.5rem',
+                padding: '2.25rem 1.25rem',
                 background: '#fff',
-                borderRadius: 20,
-                boxShadow: '0 6px 32px rgba(0,0,0,0.10)',
+                borderRadius: 22,
+                boxShadow: '0 10px 40px rgba(0,0,0,0.10)',
                 border: '1px solid #e6eaf0',
             }}>
-                <Link to="/products" style={{ textDecoration: 'none', color: '#007bff', fontWeight: 600, fontSize: 17, display: 'inline-block', marginBottom: 8, letterSpacing: 0.2 }}>← Back to Products</Link>
+                <Link
+                    to="/products"
+                    style={{
+                        textDecoration: 'none',
+                        color: '#1d4ed8',
+                        fontWeight: 800,
+                        fontSize: 15,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 10,
+                        letterSpacing: 0.2,
+                    }}
+                >
+                    <span aria-hidden="true">←</span>
+                    Back to Products
+                </Link>
                 <div
                     style={{
-                        marginTop: 28,
+                        marginTop: 18,
                         display: 'flex',
                         flexWrap: 'wrap',
-                        gap: 40,
-                        background: '#f7faff',
+                        gap: 28,
+                        background: 'linear-gradient(120deg, #ffffff 0%, #f7faff 100%)',
                         borderRadius: 18,
-                        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-                        padding: 36,
+                        boxShadow: '0 6px 22px rgba(0,0,0,0.06)',
+                        padding: 28,
                         alignItems: 'flex-start',
+                        border: '1px solid #e6eaf0',
                     }}
                 >
                     <img
                         src={`http://localhost:5000${product.image_path || '/images/other_images/dummy_product.jpg'}`}
                         alt={product.name}
                         style={{
-                            width: 340,
-                            height: 340,
+                            width: 360,
+                            height: 360,
                             objectFit: 'cover',
                             borderRadius: 14,
-                            boxShadow: '0 2px 12px rgba(0,0,0,0.09)',
+                            boxShadow: '0 10px 28px rgba(0,0,0,0.10)',
                             background: '#f8f8f8',
                             display: 'block',
                             border: '1.5px solid #e6eaf0',
@@ -258,9 +291,65 @@ const ProductInfoPage = () => {
                         onError={e => { e.target.src = 'http://localhost:5000/images/other_images/dummy_product.jpg'; }}
                     />
                     <div style={{ flex: 1, minWidth: 240 }}>
-                        <h2 style={{ fontSize: '2.3rem', marginBottom: 14, fontWeight: 700, letterSpacing: 0.2 }}>{product.name}</h2>
-                        <p style={{ fontSize: '1.5rem', color: '#007bff', fontWeight: 700, margin: '0 0 1.2rem 0', letterSpacing: 0.2 }}>${product.price}</p>
-                        <p style={{ fontSize: '1.13rem', color: '#444', marginBottom: 28, lineHeight: 1.7 }}>{product.description}</p>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+                            <h2 style={{
+                                fontSize: '2.1rem',
+                                margin: 0,
+                                fontWeight: 900,
+                                letterSpacing: 0.2,
+                                lineHeight: 1.15,
+                                color: '#0f172a',
+                                flex: '1 1 auto',
+                            }}>
+                                {product.name}
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={handleToggleFavorite}
+                                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                                style={{
+                                    width: 44,
+                                    height: 44,
+                                    borderRadius: 999,
+                                    border: isFavorite ? '1.5px solid #ff9800' : '1.5px solid #d9dde6',
+                                    background: isFavorite ? 'rgba(255,152,0,0.14)' : 'rgba(255,255,255,0.95)',
+                                    color: isFavorite ? '#ff9800' : '#64748b',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: 20,
+                                    fontWeight: 900,
+                                    boxShadow: '0 6px 18px rgba(0,0,0,0.08)',
+                                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                                    flex: '0 0 auto',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,0.12)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
+                                }}
+                            >
+                                {isFavorite ? '★' : '☆'}
+                            </button>
+                        </div>
+
+                        <div style={{ marginTop: 10, display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: '1.6rem', color: '#16a34a', fontWeight: 900, letterSpacing: 0.2 }}>
+                                ${Number(product.price).toFixed(2)}
+                            </div>
+                            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 700 }}>
+                                {isFavorite ? 'Saved to favorites' : 'Save for later'}
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '1.08rem', color: '#334155', marginTop: 14, marginBottom: 22, lineHeight: 1.7 }}>
+                            {product.description}
+                        </p>
                         {/* Add more product details as needed */}
                         {inCart ? (
                             <button
@@ -276,6 +365,7 @@ const ProductInfoPage = () => {
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.09)',
                                     transition: 'background 0.2s',
                                     marginBottom: 8,
+                                    width: '100%',
                                 }}
                                 onClick={handleRemoveFromCart}
                             >
@@ -295,6 +385,7 @@ const ProductInfoPage = () => {
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.09)',
                                     transition: 'background 0.2s',
                                     marginBottom: 8,
+                                    width: '100%',
                                 }}
                                 onClick={handleAddToCart}
                             >
