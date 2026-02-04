@@ -63,11 +63,39 @@ const deleteReview = async (id, user_id) => {
   return result.rows[0];
 };
 
+const getReviewsByUserId = async (user_id) => {
+  const result = await db.query(
+    `SELECT
+        r.*, 
+        p.name AS product_name,
+        p.image_path AS product_image_path
+     FROM reviews r
+     JOIN products p ON r.product_id = p.id
+     WHERE r.user_id = $1
+     ORDER BY r.created_at DESC`,
+    [user_id]
+  );
+  return result.rows;
+};
+
+const updateMyReview = async (id, user_id, { rating, comment }) => {
+  const result = await db.query(
+    `UPDATE reviews
+     SET rating = $1, comment = $2
+     WHERE id = $3 AND user_id = $4
+     RETURNING *`,
+    [rating, comment, id, user_id]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllReviews,
   getReviewById,
   createReview,
   getReviewsByProduct,
   updateReview,
-  deleteReview
+  deleteReview,
+  getReviewsByUserId,
+  updateMyReview
 };

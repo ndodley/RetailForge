@@ -5,7 +5,9 @@ const {
   getReviewsByProduct,
   deleteReview,
   getReviewById,
-  updateReview
+  updateReview,
+  getReviewsByUserId,
+  updateMyReview
 } = require('../models/Review');
 
 const handleGetAllReviews = async (req, res) => {
@@ -87,11 +89,58 @@ const handleDeleteReview = async (req, res) => {
   }
 };
 
+const handleGetMyReviews = async (req, res) => {
+  try {
+    const user_id = req.user?.id;
+    if (!user_id) return res.status(401).json({ error: 'Unauthorized' });
+    const reviews = await getReviewsByUserId(user_id);
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const handleUpdateMyReview = async (req, res) => {
+  try {
+    const user_id = req.user?.id;
+    if (!user_id) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be 1-5' });
+    }
+
+    const updated = await updateMyReview(id, user_id, { rating, comment });
+    if (!updated) return res.status(403).json({ error: 'Not allowed' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const handleDeleteMyReview = async (req, res) => {
+  try {
+    const user_id = req.user?.id;
+    if (!user_id) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const deleted = await deleteReview(id, user_id);
+    if (!deleted) return res.status(403).json({ error: 'Not allowed' });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   handleGetAllReviews,
   handleGetReviewById,
   handleCreateReview,
   handleGetReviewsByProduct,
   handleUpdateReview,
-  handleDeleteReview
+  handleDeleteReview,
+  handleGetMyReviews,
+  handleUpdateMyReview,
+  handleDeleteMyReview
 };
