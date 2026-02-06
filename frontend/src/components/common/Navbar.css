@@ -153,3 +153,32 @@ a {
 a:hover {
     text-decoration: underline;
 }
+
+/* ------------------------------
+   Modern navbar interactions
+   (scoped by class names so we don't affect the whole app)
+--------------------------------*/
+
+.navbar-pill:hover,
+.navbar-pill:focus-visible {
+    filter: brightness(1.05);
+    border-color: rgba(255, 152, 0, 0.55) !important;
+    background: rgba(255, 152, 0, 0.14) !important;
+    text-decoration: none !important;
+    outline: none;
+}
+
+.navbar-pill--active {
+    border-color: rgba(255, 152, 0, 0.55) !important;
+    background: rgba(255, 152, 0, 0.16) !important;
+}
+
+.navbar-menu-item:hover,
+.navbar-menu-item:focus-visible {
+    background: rgba(255, 152, 0, 0.14) !important;
+    outline: none;
+}
+
+.navbar-menu-item--active {
+    background: rgba(255, 152, 0, 0.18) !important;
+}

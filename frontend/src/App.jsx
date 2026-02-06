@@ -32,6 +32,7 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import MyOrdersPage from './pages/MyOrdersPage';
 import MyFavoritesPage from './pages/MyFavoritesPage';
 import MyReviewsPage from './pages/MyReviewsPage';
+import MyProfile from './pages/MyProfile';
 import OrderDetailsPage from './pages/OrderDetailsPage';
 
 // Initialize Stripe with your publishable key (safe for frontend)
@@ -85,6 +86,7 @@ function App() {
                         <Route path="/my-orders" element={<MyOrdersPage />} />
                         <Route path="/my-favorites" element={<MyFavoritesPage />} />
                         <Route path="/my-reviews" element={<MyReviewsPage />} />
+                        <Route path="/my-profile" element={<MyProfile />} />
                         <Route path="/order-details/:id" element={<OrderDetailsPage />} />
                         {/* Stripe Checkout Route for payment */}
                         <Route path="/checkout" element={<CheckoutPage />} />

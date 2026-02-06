@@ -99,3 +99,80 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// ✅ Get current signed-in user's profile
+exports.getMyProfile = async (req, res) => {
+    try {
+        // authMiddleware ensures req.user exists
+        res.status(200).json(req.user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ✅ Upload current signed-in user's avatar
+exports.uploadMyAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No avatar file uploaded' });
+        }
+
+        const avatarPath = `/images/user_avatars/${req.file.filename}`;
+        const updatedUser = await User.updateAvatarPath(req.user.id, avatarPath);
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ✅ Update current signed-in user's profile (editable fields only)
+exports.updateMyProfile = async (req, res) => {
+    try {
+        const first_name = (req.body.first_name ?? req.user.first_name ?? '').trim();
+        const last_name = (req.body.last_name ?? req.user.last_name ?? '').trim();
+        const email = (req.body.email ?? req.user.email ?? '').trim();
+
+        // Treat empty string as null for optional fields
+        const phone_number_raw = (req.body.phone_number ?? req.user.phone_number ?? '');
+        const phone_number = String(phone_number_raw).trim() || null;
+
+        const address_raw = (req.body.address ?? req.user.address ?? '');
+        const address = String(address_raw).trim() || null;
+
+        if (!first_name || !last_name || !email) {
+            return res.status(400).json({ error: 'First name, last name, and email are required.' });
+        }
+
+        const updatedUser = await User.updateMyProfile(req.user.id, {
+            first_name,
+            last_name,
+            email,
+            phone_number,
+            address,
+        });
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        // Postgres unique violation
+        if (error && error.code === '23505') {
+            const msg = String(error.constraint || '').includes('users_email')
+                ? 'Email is already in use.'
+                : String(error.constraint || '').includes('users_phone_number')
+                    ? 'Phone number is already in use.'
+                    : 'Duplicate value.';
+
+            return res.status(400).json({ error: msg });
+        }
+
+        res.status(500).json({ error: error.message });
+    }
+};
