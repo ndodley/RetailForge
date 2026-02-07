@@ -14,6 +14,9 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **Checkout**: Secure Stripe payment integration
 - **Order Confirmation**: Receipt page after successful purchase
 - **My Orders**: View all past orders and their details (products, quantities, totals)
+- **My Favorites**: Save products you like and manage them from a dedicated page
+- **My Reviews**: View, edit, and delete the reviews you’ve written
+- **My Profile**: View and edit your account info, plus upload your own avatar image
 - **User Registration & Login**: Secure session-based authentication
 - **Leave Reviews**: Authenticated users can review products
 
@@ -145,6 +148,10 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 - **Products**: `/api/products` (GET, POST, PUT, DELETE)
 - **Categories/Departments**: `/api/categories`, `/api/departments`
 - **Users/Auth**: `/api/users`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
+- **Current User Profile**:
+  - `GET /api/users/me` (get signed-in user profile)
+  - `PUT /api/users/me` (update signed-in user profile fields)
+  - `PUT /api/users/me/avatar` (upload avatar image)
 - **Cart**: `/api/cart`, `/api/cart/item`
 - **Orders**:
   - `/api/orders/my` (current user)
@@ -152,17 +159,28 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
   - `/api/orders/admin` (admin/manager: all orders with user email)
   - `/api/orders/admin/:id` (admin/manager: order details with user email and items)
 - **Order Details**: `/api/order-details/order/:order_id`
-- **Reviews**: `/api/reviews`
+- **Reviews**:
+  - `/api/reviews` (admin + product review operations)
+  - `GET /api/reviews/my` (current user)
+  - `PUT /api/reviews/my/:id` (current user)
+  - `DELETE /api/reviews/my/:id` (current user)
+- **Favorites**:
+  - `GET /api/favorites/my/ids`
+  - `GET /api/favorites/my`
+  - `POST /api/favorites/toggle`
+  - `POST /api/favorites`
+  - `DELETE /api/favorites/:productId`
 
 ---
 
 ## 🛡️ Security & Best Practices
 
-- Passwords are hashed and never returned from the API
-- Session cookies are HTTP-only and secure
-- All sensitive keys are stored in `.env` (never commit secrets)
-- CORS and session settings are production-ready
-- Input validation and error handling throughout
+- Passwords are never returned from the API responses
+- Session cookies are HTTP-only and sent via `credentials: 'include'`
+- For a production deployment, you should:
+  - Hash passwords (e.g., `bcrypt`) instead of storing plain text
+  - Move the session secret and other secrets fully into `.env`
+  - Enable HTTPS and set session cookies to `secure: true`
 
 ---
 
@@ -178,10 +196,7 @@ These enhancements are in progress or coming soon:
 
 ### User Personal Pages
 
-- **My Profile page**: View and update your personal info
-- **My Orders page**: (In progress) See all your past orders and details
-- **My Favorites page**: Save and manage favorite products
-- **My Reviews page**: View and manage your product reviews
+- **More profile options**: Password change, email verification, and stronger validation
 
 ### Admin Pages
 

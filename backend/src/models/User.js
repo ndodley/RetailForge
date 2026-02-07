@@ -22,7 +22,7 @@ const User = {
     // CRUD Operations
     async getAllUsers() {
         const result = await pool.query(`
-            SELECT id, first_name, last_name, email, role, phone_number, address
+            SELECT id, first_name, last_name, email, role, phone_number, address, avatar_path
             FROM users
         `);
         return result.rows;
@@ -30,10 +30,36 @@ const User = {
 
     async getUserById(id) {
         const result = await pool.query(`
-            SELECT id, first_name, last_name, email, role, phone_number, address
+            SELECT id, first_name, last_name, email, role, phone_number, address, avatar_path
             FROM users
             WHERE id = $1
         `, [id]);
+        return result.rows[0];
+    },
+
+    async updateAvatarPath(id, avatar_path) {
+        const result = await pool.query(`
+            UPDATE users
+            SET avatar_path = $1
+            WHERE id = $2
+            RETURNING id, first_name, last_name, email, role, phone_number, address, avatar_path
+        `, [avatar_path, id]);
+
+        return result.rows[0];
+    },
+
+    async updateMyProfile(id, { first_name, last_name, email, phone_number, address }) {
+        const result = await pool.query(`
+            UPDATE users
+            SET first_name = $1,
+                last_name = $2,
+                email = $3,
+                phone_number = $4,
+                address = $5
+            WHERE id = $6
+            RETURNING id, first_name, last_name, email, role, phone_number, address, avatar_path
+        `, [first_name, last_name, email, phone_number, address, id]);
+
         return result.rows[0];
     },
 
@@ -42,7 +68,7 @@ const User = {
             UPDATE users
             SET first_name = $1, last_name = $2, email = $3, password = $4, role = $5, phone_number = $6, address = $7
             WHERE id = $8
-            RETURNING id, first_name, last_name, email, role, phone_number, address
+            RETURNING id, first_name, last_name, email, role, phone_number, address, avatar_path
         `, [first_name, last_name, email, password, role, phone_number, address, id]);
 
         return result.rows[0];

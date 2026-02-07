@@ -40,6 +40,26 @@ export const AuthProvider = ({ children }) => {
         fetchUser();
     }, []);
 
+    const refreshUser = async () => {
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/me', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!res.ok) {
+                setUser(null);
+                return null;
+            }
+
+            const data = await res.json();
+            setUser(data.user || null);
+            return data.user || null;
+        } catch {
+            return null;
+        }
+    };
+
     const login = async (email, password) => {
         try {
             const res = await fetch('http://localhost:5000/api/auth/login', {
@@ -106,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, refreshUser, loading }}>
             {children}
         </AuthContext.Provider>
     );

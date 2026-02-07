@@ -6,5 +6,6 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     role VARCHAR(50) DEFAULT 'customer',
     phone_number VARCHAR(20) UNIQUE,
-    address TEXT
+    address TEXT,
+    avatar_path TEXT
 );
