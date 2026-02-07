@@ -90,7 +90,7 @@ const ShoppingCartPage = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            background: 'var(--app-bg)',
             padding: 0,
         }}>
             <div style={{ maxWidth: 900, margin: '2rem auto', padding: '2rem 1rem', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>

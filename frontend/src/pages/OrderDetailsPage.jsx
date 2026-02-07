@@ -40,7 +40,7 @@ const OrderDetailsPage = () => {
     if (!order) return <div style={{ padding: '2rem', textAlign: 'center' }}>Order not found.</div>;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0f7fa 0%, #e3fcec 100%)', padding: 0 }}>
+        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
             <div style={{ maxWidth: 900, margin: '2.5rem auto', padding: '2rem 1.5rem', background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
                 <h2 style={{ fontWeight: 900, marginBottom: 18, color: '#2196f3' }}>Order Details</h2>
                 <div style={{ marginBottom: 18 }}>

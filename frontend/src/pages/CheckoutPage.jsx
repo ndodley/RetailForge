@@ -62,15 +62,15 @@ const CheckoutPage = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)', padding: 0 }}>
-            <div style={{ maxWidth: 500, margin: '3rem auto', padding: '2rem 1.5rem', background: '#fff', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
+            <div style={{ maxWidth: 500, margin: '3rem auto', padding: '2rem 1.5rem', background: 'var(--surface-2)', borderRadius: 16, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
                 <h2 style={{ textAlign: 'center', fontWeight: 700, marginBottom: 32 }}>Checkout</h2>
                 <div style={{ marginBottom: 24 }}>
                     <div style={{ fontWeight: 600, fontSize: 18 }}>Order Summary</div>
                     <ul style={{ padding: 0, listStyle: 'none', margin: '16px 0' }}>
                         {cartItems && cartItems.map(item => (
-                            <li key={item.id} style={{ marginBottom: 8 }}>
-                                {item.name} x {item.quantity} <span style={{ color: '#888' }}>(${item.price} each)</span>
+                            <li key={item.id} style={{ marginBottom: 8, color: 'var(--text)' }}>
+                                {item.name} x {item.quantity} <span style={{ color: 'var(--muted-2)' }}>(${item.price} each)</span>
                             </li>
                         ))}
                     </ul>
@@ -87,7 +87,7 @@ const CheckoutPage = () => {
                         value={address}
                         onChange={e => setAddress(e.target.value)}
                         required
-                        style={{ width: '100%', marginBottom: 16, padding: 8, fontSize: 16 }}
+                        style={{ width: '100%', marginBottom: 16, padding: 10, fontSize: 16, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)', outline: 'none' }}
                     />
                     {/* CardElement securely collects card details */}
                     <CardElement options={{ style: { base: { fontSize: '18px' } } }} />

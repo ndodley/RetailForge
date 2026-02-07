@@ -1,54 +1,17 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-const tableStyle = {
-  width: 1100,
-  minWidth: 900,
-  maxWidth: '100%',
-  marginTop: 20,
-  borderCollapse: 'collapse',
-  background: '#fff',
-  borderRadius: 12,
-  boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-  overflow: 'hidden',
-  tableLayout: 'fixed',
-};
-const thStyle = {
-  background: '#f3f4f6',
-  color: '#333',
-  fontWeight: 700,
-  padding: '12px 10px',
-  borderBottom: '2px solid #e5e7eb',
-};
-const tdStyle = {
-  padding: '10px 8px',
-  borderBottom: '1px solid #e5e7eb',
-  color: '#222',
-  wordBreak: 'break-word',
-  whiteSpace: 'pre-line',
-  overflowWrap: 'break-word',
-};
-const commentTdStyle = {
-  ...tdStyle,
-  maxWidth: 220,
-  minWidth: 120,
-  whiteSpace: 'pre-line',
-};
-const filterBarStyle = {
-  display: 'flex',
-  gap: 16,
-  margin: '18px 0 8px 0',
-  alignItems: 'center',
-  flexWrap: 'wrap',
-};
+import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
 
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productFilter, setProductFilter] = useState('all');
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('best');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,16 +21,94 @@ const ReviewTable = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Get unique product names for filter dropdown
-  const productOptions = Array.from(new Set(reviews.map(r => r.product_name)));
+  const productOptions = useMemo(() => {
+    const names = reviews.map((r) => r.product_name).filter(Boolean);
+    return Array.from(new Set(names)).sort((a, b) => String(a).localeCompare(String(b)));
+  }, [reviews]);
+
+  const filterSections = useMemo(() => {
+    return [
+      {
+        key: 'sort',
+        title: 'Sort',
+        type: 'radio',
+        value: sortBy,
+        onChange: (v) => setSortBy(String(v)),
+        options: [
+          { value: 'best', label: 'Best Match' },
+          { value: 'date', label: 'Date' },
+          { value: 'rating', label: 'Rating' },
+          { value: 'product', label: 'Product' },
+          { value: 'user', label: 'User' },
+        ],
+      },
+      {
+        key: 'order',
+        title: 'Order',
+        type: 'radio',
+        value: sortOrder,
+        onChange: (v) => setSortOrder(String(v)),
+        options: [
+          { value: 'asc', label: 'Ascending' },
+          { value: 'desc', label: 'Descending' },
+        ],
+      },
+      {
+        key: 'product',
+        title: 'Product',
+        type: 'radio',
+        value: productFilter,
+        onChange: (v) => setProductFilter(String(v)),
+        options: [
+          { value: 'all', label: 'All' },
+          ...productOptions.map((name) => ({ value: name, label: name })),
+        ],
+      },
+      {
+        key: 'rating',
+        title: 'Rating',
+        type: 'radio',
+        value: ratingFilter,
+        onChange: (v) => setRatingFilter(String(v)),
+        options: [
+          { value: 'all', label: 'All' },
+          ...[5, 4, 3, 2, 1].map((rating) => ({ value: String(rating), label: String(rating) })),
+        ],
+      },
+    ];
+  }, [productFilter, productOptions, ratingFilter, sortBy, sortOrder]);
 
   // Filtering logic
-  const filtered = reviews.filter(r => {
-    let pass = true;
-    if (productFilter !== 'all' && r.product_name !== productFilter) pass = false;
-    if (ratingFilter !== 'all' && String(r.rating) !== String(ratingFilter)) pass = false;
-    return pass;
-  });
+  const filtered = useMemo(() => {
+    let next = Array.isArray(reviews) ? reviews : [];
+
+    next = next.filter((r) => {
+      if (productFilter !== 'all' && r.product_name !== productFilter) return false;
+      if (ratingFilter !== 'all' && String(r.rating) !== String(ratingFilter)) return false;
+      return true;
+    });
+
+    const q = String(search || '').trim().toLowerCase();
+    if (q) {
+      next = next.filter((r) => {
+        const product = String(r.product_name || '').toLowerCase();
+        const user = String(r.username || '').toLowerCase();
+        const comment = String(r.comment || '').toLowerCase();
+        return product.includes(q) || user.includes(q) || comment.includes(q);
+      });
+    }
+
+    const multiplier = sortOrder === 'asc' ? 1 : -1;
+    next = [...next].sort((a, b) => {
+      if (sortBy === 'rating') return multiplier * (Number(a.rating || 0) - Number(b.rating || 0));
+      if (sortBy === 'product') return multiplier * String(a.product_name || '').localeCompare(String(b.product_name || ''));
+      if (sortBy === 'user') return multiplier * String(a.username || '').localeCompare(String(b.username || ''));
+      if (sortBy === 'date') return multiplier * (new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+      return 0;
+    });
+
+    return next;
+  }, [productFilter, ratingFilter, reviews, search, sortBy, sortOrder]);
 
   const handleEdit = (id) => {
     navigate(`/admin/reviews/upsert/${id}`);
@@ -76,104 +117,82 @@ const ReviewTable = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this review?')) return;
     await axios.delete(`http://localhost:5000/api/reviews/${id}`);
-    setReviews(reviews.filter(r => r.id !== id));
+    setReviews((prev) => prev.filter(r => r.id !== id));
   };
 
-  if (loading) return <div>Loading...</div>;
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-      <div style={filterBarStyle}>
-        <label>
-          Product:
-          <select value={productFilter} onChange={e => setProductFilter(e.target.value)}>
-            <option value="all">All</option>
-            {productOptions.map(name => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Rating:
-          <select value={ratingFilter} onChange={e => setRatingFilter(e.target.value)}>
-            <option value="all">All</option>
-            {[5,4,3,2,1].map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-        </label>
+    <div>
+      <div style={{ maxWidth: 980 }}>
+        <AdvancedSearchPanel
+          title="Advanced Search"
+          query={search}
+          onQueryChange={setSearch}
+          isOpen={filtersOpen}
+          onToggleOpen={() => setFiltersOpen((v) => !v)}
+          onSearch={() => setFiltersOpen(false)}
+          sections={filterSections}
+        />
       </div>
-      <div style={{ overflowX: 'auto', width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <table style={tableStyle}>
-          <colgroup>
-            <col style={{ width: 50 }} />
-            <col style={{ width: 180 }} />
-            <col style={{ width: 160 }} />
-            <col style={{ width: 70 }} />
-            <col style={{ width: 220 }} />
-            <col style={{ width: 160 }} />
-            <col style={{ width: 120 }} />
-          </colgroup>
+
+      {loading ? (
+        <div style={{ padding: '10px 0', color: 'var(--muted)', fontWeight: 700 }}>Loading...</div>
+      ) : null}
+
+      <div className="admin-table">
+        <table>
           <thead>
             <tr>
-              <th style={thStyle}>ID</th>
-              <th style={thStyle}>Product</th>
-              <th style={thStyle}>User</th>
-              <th style={thStyle}>Rating</th>
-              <th style={thStyle}>Comment</th>
-              <th style={thStyle}>Date Created</th>
-              <th style={thStyle}>Actions</th>
+              <th style={{ width: 240 }}>Product</th>
+              <th style={{ width: 220 }}>User</th>
+              <th style={{ width: 120 }}>Rating</th>
+              <th>Comment</th>
+              <th style={{ width: 220 }}>Date Created</th>
+              <th style={{ width: 180 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan="7" style={tdStyle}>No reviews found.</td></tr>
-            ) : (
+            {!loading && filtered.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{ color: 'var(--muted)', fontWeight: 700 }}>
+                  No reviews found.
+                </td>
+              </tr>
+            ) : !loading ? (
               filtered.map(r => (
                 <tr key={r.id}>
-                  <td style={tdStyle}>{r.id}</td>
-                  <td style={tdStyle}>{r.product_name}</td>
-                  <td style={tdStyle}>{r.username}</td>
-                  <td style={tdStyle}>{r.rating}</td>
-                  <td style={commentTdStyle}>{r.comment}</td>
-                  <td style={tdStyle}>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
-                  <td style={tdStyle}>
-                    <button
-                      onClick={() => handleEdit(r.id)}
-                      title="Edit"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: 20,
-                        marginRight: 8,
-                        color: '#1976d2',
-                        padding: 4,
-                        borderRadius: 4,
-                        transition: 'background 0.2s',
-                      }}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      title="Delete"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: 20,
-                        color: '#ff5252',
-                        padding: 4,
-                        borderRadius: 4,
-                        transition: 'background 0.2s',
-                      }}
-                    >
-                      🗑️
-                    </button>
+                  <td style={{ fontWeight: 900 }}>{r.product_name}</td>
+                  <td style={{ fontWeight: 800 }}>{r.username}</td>
+                  <td style={{ fontWeight: 900 }}>{r.rating}</td>
+                  <td style={{ color: 'var(--muted)', whiteSpace: 'pre-line' }}>{r.comment}</td>
+                  <td style={{ color: 'var(--muted)' }}>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
+                  <td>
+                    <div className="admin-row-actions">
+                      <button
+                        onClick={() => handleEdit(r.id)}
+                        className="admin-icon-btn"
+                        title="Edit"
+                      >
+                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="admin-icon-btn admin-icon-btn--danger"
+                        title="Delete"
+                      >
+                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
+            ) : (
+              <tr>
+                <td colSpan="6" style={{ color: 'var(--muted)', fontWeight: 700 }}>
+                  Loading...
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

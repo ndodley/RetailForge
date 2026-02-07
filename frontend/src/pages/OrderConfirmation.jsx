@@ -37,7 +37,7 @@ const OrderConfirmation = () => {
     }
 
     return (
-        <div className="order-confirmation-bg" style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0f7fa 0%, #e3fcec 100%)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="order-confirmation-bg" style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="order-confirmation-container" style={{ maxWidth: 700, width: '100%', margin: '3rem auto', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 12px 40px 0 rgba(99,91,255,0.13)', background: 'linear-gradient(120deg, #f8fffe 0%, #e3fcec 100%)', border: '2px solid #28a745', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: -32, left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '50%', boxShadow: '0 2px 8px rgba(40,167,69,0.10)', padding: 12, border: '2.5px solid #28a745' }}>
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="24" fill="#28a745"/><path d="M34 18L21.5 30.5L14 23" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>

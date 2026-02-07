@@ -1,20 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import ProductTable from '../../../components/tables/ProductTable';
+import AdminLayout from '../../../components/admin/AdminLayout';
 
 const ProductList = () => {
     const navigate = useNavigate();
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
-            padding: 0,
-        }}>
-            <div>
-                <h2>Manage Products</h2>
-                <button onClick={() => navigate('/admin/products/upsert')}>Add New Product</button>
-                <ProductTable />
-            </div>
-        </div>
+        <AdminLayout
+            title="Manage Products"
+            actions={(
+                <button
+                    className="admin-btn admin-btn--primary"
+                    onClick={() => navigate('/admin/products/upsert')}
+                >
+                    Add New Product
+                </button>
+            )}
+        >
+            <ProductTable />
+        </AdminLayout>
     );
 };
 

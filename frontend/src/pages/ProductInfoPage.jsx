@@ -230,7 +230,7 @@ const ProductInfoPage = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+               background: 'var(--app-bg)',
             padding: 0,
             fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
             color: '#222',

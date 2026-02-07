@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const UserTable = ({ roleFilter }) => {
+const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 'desc' }) => {
     const [users, setUsers] = useState([]);
     const navigate = useNavigate();
 
@@ -28,44 +28,82 @@ const UserTable = ({ roleFilter }) => {
         }
     };
 
-    // ✅ Filter users based on selected role
-    const filteredUsers = users.filter(user => roleFilter === "All" || user.role === roleFilter.toLowerCase());
+    const filteredUsers = users.filter((user) => {
+        if (roleFilter !== "All" && user.role !== roleFilter.toLowerCase()) return false;
+
+        const q = String(searchQuery || '').trim().toLowerCase();
+        if (!q) return true;
+
+        const firstName = String(user.first_name || '').toLowerCase();
+        const lastName = String(user.last_name || '').toLowerCase();
+        const email = String(user.email || '').toLowerCase();
+        const phone = String(user.phone_number || '').toLowerCase();
+
+        return (
+            firstName.includes(q) ||
+            lastName.includes(q) ||
+            email.includes(q) ||
+            phone.includes(q)
+        );
+    });
+
+    const sortedUsers = (() => {
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        const next = [...filteredUsers];
+
+        next.sort((a, b) => {
+            if (sortBy === 'first') return multiplier * String(a.first_name || '').localeCompare(String(b.first_name || ''));
+            if (sortBy === 'last') return multiplier * String(a.last_name || '').localeCompare(String(b.last_name || ''));
+            if (sortBy === 'email') return multiplier * String(a.email || '').localeCompare(String(b.email || ''));
+            if (sortBy === 'role') return multiplier * String(a.role || '').localeCompare(String(b.role || ''));
+            return 0;
+        });
+
+        return next;
+    })();
 
     return (
         <div>
-            <h2>User List</h2>
-            {filteredUsers.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Phone Number</th>
-                            <th>Address</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.id}</td>
-                                <td>{`${user.first_name}`}</td>
-                                <td>{`${user.last_name}`}</td>
-                                <td>{user.email}</td>
-                                <td>{user.phone_number || "N/A"}</td>
-                                <td>{user.address || "N/A"}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/admin/users/upsert/${user.id}`)}>Edit</button>
-                                    <button onClick={() => handleDelete(user.id)}>Delete</button>
-                                </td>
+            {sortedUsers.length > 0 ? (
+                <div className="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style={{ width: 180 }}>First Name</th>
+                                <th style={{ width: 180 }}>Last Name</th>
+                                <th>Email</th>
+                                <th style={{ width: 180 }}>Phone</th>
+                                <th style={{ width: 280 }}>Address</th>
+                                <th style={{ width: 220 }}>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {sortedUsers.map((user) => (
+                                <tr key={user.id}>
+                                    <td style={{ fontWeight: 800 }}>{`${user.first_name}`}</td>
+                                    <td style={{ fontWeight: 800 }}>{`${user.last_name}`}</td>
+                                    <td style={{ fontWeight: 700 }}>{user.email}</td>
+                                    <td style={{ color: 'var(--muted)' }}>{user.phone_number || "N/A"}</td>
+                                    <td style={{ color: 'var(--muted)' }}>{user.address || "N/A"}</td>
+                                    <td>
+                                        <div className="admin-row-actions">
+                                            <button className="admin-btn admin-btn--sm" onClick={() => navigate(`/admin/users/upsert/${user.id}`)}>
+                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                                Edit
+                                            </button>
+                                            <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => handleDelete(user.id)}>
+                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
-                <p>No users found.</p>
+                <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No users found.</div>
             )}
         </div>
     );
