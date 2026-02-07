@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminLayout from '../../../components/admin/AdminLayout';
 
 const UpsertProduct = () => {
     const { id } = useParams();
@@ -87,18 +88,16 @@ const UpsertProduct = () => {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
-            padding: 0,
-        }}>
-            <div>
-                <h2>{id ? 'Edit Product' : 'Add New Product'}</h2>
-                <form onSubmit={handleSubmit}>
-                    {/* Department Dropdown */}
-                    <label>
-                        Department:
+        <AdminLayout
+            title={id ? 'Edit Product' : 'Add New Product'}
+            subtitle="Products appear in the store catalog and can include an optional image."
+        >
+            <form onSubmit={handleSubmit}>
+                <div className="admin-field-grid">
+                    <div className="admin-field">
+                        <div className="admin-label">Department</div>
                         <select
+                            className="admin-select"
                             name="department_id"
                             value={formData.department_id || ''}
                             onChange={e => {
@@ -111,11 +110,12 @@ const UpsertProduct = () => {
                                 <option key={dep.id} value={dep.id}>{dep.name}</option>
                             ))}
                         </select>
-                    </label>
-                    {/* Category Dropdown (filtered by department) */}
-                    <label>
-                        Category:
+                    </div>
+
+                    <div className="admin-field">
+                        <div className="admin-label">Category</div>
                         <select
+                            className="admin-select"
                             name="category_id"
                             value={formData.category_id || ''}
                             onChange={handleChange}
@@ -127,38 +127,56 @@ const UpsertProduct = () => {
                                 <option key={category.id} value={category.id}>{category.name}</option>
                             ))}
                         </select>
-                    </label>
+                    </div>
 
                     {Object.keys(formData).map((key) => (
-                        key !== "category_id" && key !== "department_id" && (
-                            <label key={key}>
-                                {key.charAt(0).toUpperCase() + key.slice(1)}:
-                                <input
-                                    type={key === 'price' || key === 'stock' ? 'number' : 'text'}
-                                    name={key}
-                                    value={formData[key]}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </label>
+                        key !== 'category_id' && key !== 'department_id' && (
+                            <div key={key} className="admin-field" style={key === 'description' ? { gridColumn: '1 / -1' } : undefined}>
+                                <div className="admin-label">{key.charAt(0).toUpperCase() + key.slice(1)}</div>
+                                {key === 'description' ? (
+                                    <textarea
+                                        className="admin-textarea"
+                                        name={key}
+                                        value={formData[key]}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                ) : (
+                                    <input
+                                        className="admin-input"
+                                        type={key === 'price' || key === 'stock' ? 'number' : 'text'}
+                                        name={key}
+                                        value={formData[key]}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                )}
+                            </div>
                         )
                     ))}
 
-                    <label>
-                        Image (optional):
+                    <div className="admin-field" style={{ gridColumn: '1 / -1' }}>
+                        <div className="admin-label">Image (optional)</div>
                         <input
+                            className="admin-input"
                             type="file"
                             name="image"
                             accept="image/png, image/jpeg"
                             onChange={handleFileChange}
                         />
-                    </label>
+                    </div>
+                </div>
 
-                    <button type="submit">{id ? 'Update Product' : 'Add Product'}</button>
-                    <button type="button" onClick={() => navigate('/admin/products')}>Go Back</button> {/* ✅ Added Go Back */}
-                </form>
-            </div>
-        </div>
+                <div className="admin-actions" style={{ marginTop: 14 }}>
+                    <button className="admin-btn admin-btn--primary" type="submit">
+                        {id ? 'Update Product' : 'Add Product'}
+                    </button>
+                    <button className="admin-btn" type="button" onClick={() => navigate('/admin/products')}>
+                        Go Back
+                    </button>
+                </div>
+            </form>
+        </AdminLayout>
     );
 };
 

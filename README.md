@@ -6,15 +6,23 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 ## 🚀 Features
 
+### 🎨 Theme
+
+- **Light/Dark Mode Toggle**: Switch themes from the navbar
+- **Persisted Preference**: Saves your choice in localStorage and respects system preference on first load
+
 ### 🛒 Customer Features
 
 - **Browse Products**: View, search, and filter products by department and category
+- **Advanced Search (Compact)**: Collapsible filter panel with search + sort + order
+- **Dependent Filters**: Category options depend on selected Department
 - **Product Details**: See detailed info, images, and reviews for each product
 - **Shopping Cart**: Add, update, and remove items; persistent across sessions
 - **Checkout**: Secure Stripe payment integration
 - **Order Confirmation**: Receipt page after successful purchase
 - **My Orders**: View all past orders and their details (products, quantities, totals)
 - **My Favorites**: Save products you like and manage them from a dedicated page
+- **Stable Favorites Page**: Fixed runtime crash and improved favorites rendering flow
 - **My Reviews**: View, edit, and delete the reviews you’ve written
 - **My Profile**: View and edit your account info, plus upload your own avatar image
 - **User Registration & Login**: Secure session-based authentication
@@ -24,8 +32,12 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 - **Admin Dashboard**: Manage departments, categories, products, users, and reviews
 - **CRUD Operations**: Create, update, and delete all entities
+- **Advanced Search Everywhere (Admin)**: Products, Users, Reviews, Departments, and Categories include Search + Sort + Order
+- **Default Sort Order**: Search panels default to **Ascending** order for consistency
 - **Order Management**: View all orders in the system, see user emails, and inspect order details with product images
-- **Modern Admin UI**: Orders pages feature a modern, responsive table and detail view
+- **Orders: Details + Actions Columns**: View stays under Details; Edit/Delete are grouped under Actions
+- **Order Status Edit Flow**: “Edit” opens details in edit mode for updating status
+- **Modern Admin UI**: Icon-based action buttons and consistent spacing across admin tables
 - **Role-Based Access**: Only managers/admins can access admin routes
 - **Refresh-Safe Auth**: Admin pages remain accessible after refresh thanks to robust session hydration
 
@@ -65,9 +77,9 @@ DepartmentStore1_2025/
 │   │   ├── middleware/
 │   │   ├── db.js
 │   │   └── server.js
-│   ├── database/
-│   │   └── migrations/
 │   └── package.json
+├── database/
+│   └── migrations/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -204,7 +216,7 @@ These enhancements are in progress or coming soon:
 
 ### Whole Project
 
-- **Light/Dark Mode Toggle**: Switch between light and dark themes
+- **Product Metadata**: Add additional product fields (e.g., brand/company)
 - **Modernize All Pages**: Refactor all UI to use modern React best practices
 - **Refresh-Safe Auth**: All protected pages now wait for session hydration before redirecting, so admin and user pages are refresh-safe
 - **Fix Project Title**: Update and standardize the project title across all pages

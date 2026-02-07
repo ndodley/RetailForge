@@ -139,7 +139,7 @@ const MyReviewsPage = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)', padding: 0 }}>
+        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
             <div style={{ maxWidth: 1100, margin: '2.5rem auto', padding: '2rem 1.25rem', background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <h2 style={{ fontWeight: 900, margin: 0, color: '#ff9800' }}>My Reviews</h2>

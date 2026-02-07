@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
 
 const DepartmentTable = () => {
     const [departments, setDepartments] = useState([]);
+    const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('best');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const navigate = useNavigate();
 
     // ✅ Fetch department list from backend
@@ -30,33 +35,102 @@ const DepartmentTable = () => {
         }
     };
 
+    const filterSections = useMemo(() => {
+        return [
+            {
+                key: 'sort',
+                title: 'Sort',
+                type: 'radio',
+                value: sortBy,
+                onChange: (v) => setSortBy(String(v)),
+                options: [
+                    { value: 'best', label: 'Best Match' },
+                    { value: 'alpha', label: 'Alphabet' },
+                ],
+            },
+            {
+                key: 'order',
+                title: 'Order',
+                type: 'radio',
+                value: sortOrder,
+                onChange: (v) => setSortOrder(String(v)),
+                options: [
+                    { value: 'asc', label: 'Ascending' },
+                    { value: 'desc', label: 'Descending' },
+                ],
+            },
+        ];
+    }, [sortBy, sortOrder]);
+
+    const visibleDepartments = useMemo(() => {
+        let next = Array.isArray(departments) ? departments : [];
+
+        const q = String(search || '').trim().toLowerCase();
+        if (q) {
+            next = next.filter((d) => String(d.name || '').toLowerCase().includes(q));
+        }
+
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        next = [...next].sort((a, b) => {
+            if (sortBy === 'alpha') return multiplier * String(a.name || '').localeCompare(String(b.name || ''));
+            return 0;
+        });
+
+        return next;
+    }, [departments, search, sortBy, sortOrder]);
+
     return (
         <div>
-            <h2>Department List</h2>
-            {departments.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {departments.map((department) => (
-                            <tr key={department.id}>
-                                <td>{department.id}</td>
-                                <td>{department.name}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}>Edit</button>
-                                    <button onClick={() => handleDelete(department.id)}>Delete</button>
-                                </td>
+            <div style={{ maxWidth: 980, marginBottom: 12 }}>
+                <AdvancedSearchPanel
+                    title="Advanced Search"
+                    query={search}
+                    onQueryChange={setSearch}
+                    isOpen={filtersOpen}
+                    onToggleOpen={() => setFiltersOpen((v) => !v)}
+                    onSearch={() => setFiltersOpen(false)}
+                    sections={filterSections}
+                />
+            </div>
+
+            {visibleDepartments.length > 0 ? (
+                <div className="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th style={{ width: 220 }}>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {visibleDepartments.map((department) => (
+                                <tr key={department.id}>
+                                    <td style={{ fontWeight: 800 }}>{department.name}</td>
+                                    <td>
+                                        <div className="admin-row-actions">
+                                            <button
+                                                className="admin-btn admin-btn--sm"
+                                                onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}
+                                            >
+                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="admin-btn admin-btn--sm admin-btn--danger"
+                                                onClick={() => handleDelete(department.id)}
+                                            >
+                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
-                <p>No departments found.</p>
+                <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No departments found.</div>
             )}
         </div>
     );

@@ -1,13 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from '../components/common/ProductCard';
-import ProductSearchBar from '../components/common/ProductSearchBar';
+import AdvancedSearchPanel from '../components/common/AdvancedSearchPanel';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-
-const CaretDownIcon = ({ style }) => (
-    <svg style={style} width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-);
 
 const ProductPage = () => {
     const [products, setProducts] = useState([]);
@@ -17,6 +13,10 @@ const ProductPage = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [departments, setDepartments] = useState([]);
+    const [sortBy, setSortBy] = useState('best');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [stockFilter, setStockFilter] = useState('any'); // any | in | out
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { user } = useAuth();
@@ -42,43 +42,93 @@ const ProductPage = () => {
             });
     }, []);
 
-    // Filter categories based on selected department (use numbers for comparison)
-    const filteredCategories = selectedDepartment === 'all'
-        ? []
-        : categories.filter(cat => parseInt(cat.department_id) === parseInt(selectedDepartment));
+    const availableCategories = useMemo(() => {
+        if (selectedDepartment === 'all') return [];
+        return categories.filter((cat) => Number(cat.department_id) === Number(selectedDepartment));
+    }, [categories, selectedDepartment]);
 
-    // Dropdown with search for departments and categories
-    const [dropdownOpen, setDropdownOpen] = useState(null); // 'department' | 'category' | null
-    const [dropdownSearch, setDropdownSearch] = useState('');
-    const departmentDropdownRef = useRef();
-    const categoryDropdownRef = useRef();
+    const departmentOptions = useMemo(() => {
+        const opts = [{ value: 'all', label: 'Any' }];
+        const sorted = [...departments].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        sorted.forEach((d) => opts.push({ value: String(d.id), label: d.name }));
+        return opts;
+    }, [departments]);
 
-    // Close dropdown on outside click
-    useEffect(() => {
-        const handleClick = (e) => {
-            if (
-                (dropdownOpen === 'department' && departmentDropdownRef.current && !departmentDropdownRef.current.contains(e.target)) ||
-                (dropdownOpen === 'category' && categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target))
-            ) {
-                setDropdownOpen(null);
-                setDropdownSearch('');
-            }
-        };
-        document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [dropdownOpen]);
+    const categoryOptions = useMemo(() => {
+        const opts = [{ value: 'all', label: 'Any' }];
+        const sorted = [...availableCategories].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        sorted.forEach((c) => opts.push({ value: String(c.id), label: c.name }));
+        return opts;
+    }, [availableCategories]);
 
-    // Filtered options
-    const filteredDepartmentOptions = departments.filter(dep => dep.name.toLowerCase().includes(dropdownOpen === 'department' ? dropdownSearch.toLowerCase() : ''));
-    const filteredCategoryOptions = filteredCategories.filter(cat => cat.name.toLowerCase().includes(dropdownOpen === 'category' ? dropdownSearch.toLowerCase() : ''));
+    const filterSections = useMemo(() => {
+        return [
+            {
+                key: 'sort',
+                title: 'Sort',
+                type: 'radio',
+                value: sortBy,
+                onChange: (v) => setSortBy(String(v)),
+                options: [
+                    { value: 'best', label: 'Best Match' },
+                    { value: 'alpha', label: 'Alphabet' },
+                    { value: 'price', label: 'Price' },
+                    { value: 'stock', label: 'Stock' },
+                ],
+            },
+            {
+                key: 'order',
+                title: 'Order',
+                type: 'radio',
+                value: sortOrder,
+                onChange: (v) => setSortOrder(String(v)),
+                options: [
+                    { value: 'asc', label: 'Ascending' },
+                    { value: 'desc', label: 'Descending' },
+                ],
+            },
+            {
+                key: 'department',
+                title: 'Department',
+                type: 'radio',
+                value: selectedDepartment,
+                onChange: (v) => {
+                    const next = String(v);
+                    setSelectedDepartment(next);
+                    setSelectedCategory('all');
+                },
+                options: departmentOptions,
+            },
+            {
+                key: 'category',
+                title: 'Category',
+                type: 'radio',
+                value: selectedCategory,
+                onChange: (v) => setSelectedCategory(String(v)),
+                options: categoryOptions,
+            },
+            {
+                key: 'stock',
+                title: 'In Stock',
+                type: 'radio',
+                value: stockFilter,
+                onChange: (v) => setStockFilter(String(v)),
+                options: [
+                    { value: 'any', label: 'Any' },
+                    { value: 'in', label: 'True' },
+                    { value: 'out', label: 'False' },
+                ],
+            },
+        ];
+    }, [categoryOptions, departmentOptions, selectedCategory, selectedDepartment, sortBy, sortOrder, stockFilter]);
 
     useEffect(() => {
         let filtered = products;
         // Filter by department using category lookup
         if (selectedDepartment !== 'all') {
             filtered = filtered.filter(p => {
-                const category = categories.find(c => c.id === p.category_id);
-                return category && category.department_id === parseInt(selectedDepartment);
+                const category = categories.find((c) => Number(c.id) === Number(p.category_id));
+                return category && Number(category.department_id) === Number(selectedDepartment);
             });
         }
         // Filter by category
@@ -91,8 +141,24 @@ const ProductPage = () => {
                 p.name.toLowerCase().includes(search.toLowerCase())
             );
         }
+
+        if (stockFilter === 'in') {
+            filtered = filtered.filter(p => Number(p.stock || 0) > 0);
+        }
+        if (stockFilter === 'out') {
+            filtered = filtered.filter(p => Number(p.stock || 0) <= 0);
+        }
+
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        filtered = [...filtered].sort((a, b) => {
+            if (sortBy === 'alpha') return multiplier * String(a.name).localeCompare(String(b.name));
+            if (sortBy === 'price') return multiplier * (Number(a.price || 0) - Number(b.price || 0));
+            if (sortBy === 'stock') return multiplier * (Number(a.stock || 0) - Number(b.stock || 0));
+            return 0; // Best Match keeps API order
+        });
+
         setFilteredProducts(filtered);
-    }, [search, selectedCategory, selectedDepartment, products, categories]);
+    }, [search, selectedCategory, selectedDepartment, products, categories, sortBy, sortOrder, stockFilter]);
 
     const handleAddToCart = async (product) => {
         if (!user) {
@@ -122,7 +188,7 @@ const ProductPage = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            background: 'var(--app-bg)',
             padding: 0,
         }}>
             <div className="product-page-container" style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1rem' }}>
@@ -135,166 +201,19 @@ const ProductPage = () => {
                     gap: 16,
                     marginBottom: 24,
                     width: '100%',
-                    maxWidth: 700,
+                    maxWidth: 900,
                     marginLeft: 'auto',
                     marginRight: 'auto',
                 }}>
-                    <ProductSearchBar
-                        search={search}
-                        setSearch={setSearch}
+                    <AdvancedSearchPanel
+                        title="Advanced Search"
+                        query={search}
+                        onQueryChange={setSearch}
+                        isOpen={filtersOpen}
+                        onToggleOpen={() => setFiltersOpen((v) => !v)}
+                        onSearch={() => setFiltersOpen(false)}
+                        sections={filterSections}
                     />
-                </div>
-                <div style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 16,
-                    marginBottom: 32,
-                    width: '100%',
-                    maxWidth: 700,
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
-                }}>
-                    {/* Department Dropdown */}
-                    <div ref={departmentDropdownRef} style={{ position: 'relative', minWidth: 140, height: 44, flex: '0 0 140px', zIndex: 2 }}>
-                        <button
-                            style={{
-                                height: 44,
-                                minWidth: 140,
-                                padding: '0 1rem',
-                                borderRadius: 0,
-                                borderTop: '1.5px solid #b3c6e0',
-                                borderBottom: '1.5px solid #b3c6e0',
-                                borderRight: 'none',
-                                borderLeft: 'none',
-                                background: '#fff',
-                                cursor: 'pointer',
-                                fontSize: 16,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                outline: dropdownOpen === 'department' ? '2px solid #cce4ff' : undefined
-                            }}
-                            onClick={() => {
-                                setDropdownOpen(dropdownOpen === 'department' ? null : 'department');
-                                setDropdownSearch('');
-                            }}
-                            tabIndex={0}
-                            aria-haspopup="listbox"
-                            aria-expanded={dropdownOpen === 'department'}
-                        >
-                            <span>{selectedDepartment === 'all' ? 'All Departments' : departments.find(dep => dep.id === parseInt(selectedDepartment))?.name || 'Select Department'}</span>
-                            <CaretDownIcon style={{ marginLeft: 8, transition: 'transform 0.2s', transform: dropdownOpen === 'department' ? 'rotate(180deg)' : 'none' }} />
-                        </button>
-                        {dropdownOpen === 'department' && (
-                            <div style={{ position: 'absolute', top: 38, left: 0, width: 180, background: '#fff', border: '1.5px solid #007bff', borderRadius: 6, zIndex: 10, boxShadow: '0 4px 16px rgba(0,123,255,0.10)' }}>
-                                <input
-                                    type="text"
-                                    placeholder="Search department..."
-                                    value={dropdownSearch}
-                                    onChange={e => setDropdownSearch(e.target.value)}
-                                    style={{ width: '100%', padding: '6px 8px', border: 'none', borderBottom: '1px solid #eee', borderRadius: '6px 6px 0 0', outline: 'none' }}
-                                    autoFocus
-                                />
-                                <div style={{ maxHeight: 180, overflowY: 'auto' }}>
-                                    <div
-                                        style={{ padding: '8px', cursor: 'pointer', color: '#007bff', background: selectedDepartment === 'all' ? '#e6f0ff' : undefined, fontWeight: selectedDepartment === 'all' ? 'bold' : undefined, transition: 'background 0.2s' }}
-                                        onMouseDown={e => e.preventDefault()}
-                                        onClick={() => { setSelectedDepartment('all'); setDropdownOpen(null); setDropdownSearch(''); setSelectedCategory('all'); }}
-                                    >All Departments</div>
-                                    {filteredDepartmentOptions.map(dep => (
-                                        <div
-                                            key={dep.id}
-                                            style={{
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                background: selectedDepartment === String(dep.id) ? '#e6f0ff' : undefined,
-                                                fontWeight: selectedDepartment === String(dep.id) ? 'bold' : undefined,
-                                                transition: 'background 0.2s'
-                                            }}
-                                            onMouseDown={e => e.preventDefault()}
-                                            onClick={() => { setSelectedDepartment(String(dep.id)); setDropdownOpen(null); setDropdownSearch(''); setSelectedCategory('all'); }}
-                                            onMouseEnter={e => e.currentTarget.style.background = '#f0f8ff'}
-                                            onMouseLeave={e => e.currentTarget.style.background = selectedDepartment === String(dep.id) ? '#e6f0ff' : '#fff'}
-                                        >{dep.name}</div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    {/* Category Dropdown */}
-                    <div ref={categoryDropdownRef} style={{ position: 'relative', minWidth: 140, height: 44, flex: '0 0 140px', zIndex: 1, marginLeft: '-1.5px' }}>
-                        <button
-                            style={{
-                                height: 44,
-                                minWidth: 140,
-                                padding: '0 1rem',
-                                borderRadius: '0 8px 8px 0',
-                                borderTop: '1.5px solid #b3c6e0',
-                                borderBottom: '1.5px solid #b3c6e0',
-                                borderLeft: 'none',
-                                borderRight: '1.5px solid #b3c6e0',
-                                background: '#fff',
-                                cursor: selectedDepartment === 'all' ? 'not-allowed' : 'pointer',
-                                fontSize: 16,
-                                color: selectedDepartment === 'all' ? '#aaa' : undefined,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                outline: dropdownOpen === 'category' ? '2px solid #cce4ff' : undefined
-                            }}
-                            onClick={() => {
-                                if (selectedDepartment === 'all') return;
-                                setDropdownOpen(dropdownOpen === 'category' ? null : 'category');
-                                setDropdownSearch('');
-                            }}
-                            disabled={selectedDepartment === 'all'}
-                            tabIndex={0}
-                            aria-haspopup="listbox"
-                            aria-expanded={dropdownOpen === 'category'}
-                        >
-                            <span>{selectedCategory === 'all' ? 'All Categories' : filteredCategories.find(cat => cat.id === parseInt(selectedCategory))?.name || 'Select Category'}</span>
-                            <CaretDownIcon style={{ marginLeft: 8, transition: 'transform 0.2s', transform: dropdownOpen === 'category' ? 'rotate(180deg)' : 'none' }} />
-                        </button>
-                        {dropdownOpen === 'category' && (
-                            <div style={{ position: 'absolute', top: 38, left: 0, width: 180, background: '#fff', border: '1.5px solid #007bff', borderRadius: 6, zIndex: 10, boxShadow: '0 4px 16px rgba(0,123,255,0.10)' }}>
-                                <input
-                                    type="text"
-                                    placeholder="Search category..."
-                                    value={dropdownSearch}
-                                    onChange={e => setDropdownSearch(e.target.value)}
-                                    style={{ width: '100%', padding: '6px 8px', border: 'none', borderBottom: '1px solid #eee', borderRadius: '6px 6px 0 0', outline: 'none' }}
-                                    autoFocus
-                                />
-                                <div style={{ maxHeight: 180, overflowY: 'auto' }}>
-                                    <div
-                                        style={{ padding: '8px', cursor: 'pointer', color: '#007bff', background: selectedCategory === 'all' ? '#e6f0ff' : undefined, fontWeight: selectedCategory === 'all' ? 'bold' : undefined, transition: 'background 0.2s' }}
-                                        onMouseDown={e => e.preventDefault()}
-                                        onClick={() => { setSelectedCategory('all'); setDropdownOpen(null); setDropdownSearch(''); }}
-                                    >All Categories</div>
-                                    {filteredCategoryOptions.map(cat => (
-                                        <div
-                                            key={cat.id}
-                                            style={{
-                                                padding: '8px',
-                                                cursor: 'pointer',
-                                                background: selectedCategory === String(cat.id) ? '#e6f0ff' : undefined,
-                                                fontWeight: selectedCategory === String(cat.id) ? 'bold' : undefined,
-                                                transition: 'background 0.2s'
-                                            }}
-                                            onMouseDown={e => e.preventDefault()}
-                                            onClick={() => { setSelectedCategory(String(cat.id)); setDropdownOpen(null); setDropdownSearch(''); }}
-                                            onMouseEnter={e => e.currentTarget.style.background = '#f0f8ff'}
-                                            onMouseLeave={e => e.currentTarget.style.background = selectedCategory === String(cat.id) ? '#e6f0ff' : '#fff'}
-                                        >{cat.name}</div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
                 </div>
                 <div className="product-grid" style={{
                     display: 'grid',

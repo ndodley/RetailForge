@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../context/ThemeContext";
 import "./Navbar.css";
 
 function Navbar() {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate(); // <-- Add navigate
     const [adminOpen, setAdminOpen] = useState(false); // State for admin dropdown
@@ -34,27 +36,30 @@ function Navbar() {
     };
 
     return (
-        <nav style={{
-            background: 'linear-gradient(90deg, #181818 60%, #232526 100%)',
-            borderRadius: 18,
-            margin: '18px auto 32px auto',
-            maxWidth: 1200,
-            padding: '0.5rem 2.5rem',
-            position: 'relative',
-            zIndex: 10,
-            border: 'none',
-            boxShadow: '0 2px 8px rgba(255,140,0,0.10)'
-        }}>
+        <nav
+            className="navbar"
+            style={{
+                background: 'var(--nav-bg)',
+                borderRadius: 18,
+                margin: '18px auto 32px auto',
+                maxWidth: 1200,
+                padding: '0.5rem 2.5rem',
+                position: 'relative',
+                zIndex: 10,
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--nav-shadow)'
+            }}
+        >
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, width: '100%' }}>
                 {/* Left: Brand + main links (Admin, Products) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', minWidth: 0 }}>
-                    <div style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: '#ff9800', marginRight: 32 }}>
+                    <div style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: 'var(--accent)', marginRight: 32 }}>
                         <Link
                             to="/"
                             style={{
                                 textDecoration: 'none',
-                                color: '#ff9800',
-                                borderBottom: location.pathname === '/' ? '2.5px solid #ff9800' : '2.5px solid transparent',
+                                color: 'var(--accent)',
+                                borderBottom: location.pathname === '/' ? '2.5px solid var(--accent)' : '2.5px solid transparent',
                                 paddingBottom: 2,
                                 transition: 'border 0.2s'
                             }}
@@ -72,12 +77,12 @@ function Navbar() {
                                 style={{
                                     fontWeight: 800,
                                     cursor: 'pointer',
-                                    color: '#fff',
+                                    color: 'var(--text)',
                                     padding: '8px 16px',
                                     borderRadius: 999,
                                     transition: 'background 0.2s, border 0.2s',
                                     border: '1.5px solid rgba(255,152,0,0.35)',
-                                    background: adminOpen ? 'rgba(255,152,0,0.14)' : 'rgba(255,255,255,0.06)'
+                                    background: adminOpen ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)'
                                 }}
                                 onClick={() => setAdminOpen((open) => !open)}
                             >
@@ -89,10 +94,10 @@ function Navbar() {
                                     position: 'absolute',
                                     top: 44,
                                     left: 0,
-                                    background: '#111827',
+                                    background: 'var(--nav-menu-bg)',
                                     border: '1.5px solid rgba(255,152,0,0.45)',
                                     borderRadius: 14,
-                                    boxShadow: '0 18px 40px rgba(0,0,0,0.28)',
+                                    boxShadow: 'var(--shadow-2)',
                                     padding: 8,
                                     margin: 0,
                                     minWidth: 190,
@@ -101,24 +106,24 @@ function Navbar() {
                                     listStyle: 'none'
                                 }}
                             >
-                                <li><Link to="/admin/departments" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Departments</Link></li>
-                                <li><Link to="/admin/categories" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Categories</Link></li>
-                                <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Products</Link></li>
-                                <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Users</Link></li>
-                                <li><Link to="/admin/reviews" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Reviews</Link></li>
-                                <li><Link to="/admin/orders" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Orders</Link></li>
+                                <li><Link to="/admin/departments" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Departments</Link></li>
+                                <li><Link to="/admin/categories" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Categories</Link></li>
+                                <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Products</Link></li>
+                                <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Users</Link></li>
+                                <li><Link to="/admin/reviews" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Reviews</Link></li>
+                                <li><Link to="/admin/orders" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Orders</Link></li>
                             </ul>
                         </div>
                     )}
 
                     <Link to="/products" className={`navbar-pill ${location.pathname.startsWith('/products') ? 'navbar-pill--active' : ''}`} style={{
                         fontWeight: 800,
-                        color: '#fff',
+                        color: 'var(--text)',
                         textDecoration: 'none',
                         padding: '8px 16px',
                         borderRadius: 999,
                         border: '1.5px solid transparent',
-                        background: location.pathname.startsWith('/products') ? 'rgba(255,152,0,0.14)' : 'rgba(255,255,255,0.06)',
+                        background: location.pathname.startsWith('/products') ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)',
                         transition: 'background 0.2s, border 0.2s'
                     }}>Products</Link>
                 </div>
@@ -129,16 +134,16 @@ function Navbar() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        color: '#ff9800',
+                        color: 'var(--accent)',
                         textDecoration: 'none',
                         padding: '8px 14px',
                         borderRadius: 999,
                         border: location.pathname === '/cart' ? '1.5px solid rgba(255,152,0,0.55)' : '1.5px solid rgba(255,152,0,0.30)',
-                        background: location.pathname === '/cart' ? 'rgba(255,152,0,0.10)' : 'rgba(255,255,255,0.04)',
+                        background: location.pathname === '/cart' ? 'rgba(255,152,0,0.10)' : 'var(--nav-pill-bg-2)',
                         transition: 'background 0.2s, border 0.2s'
                     }}>
                         <span role="img" aria-label="cart" style={{ fontSize: 20 }}>🛒</span>
-                        <span style={{ fontWeight: 900, color: '#fff' }}>Cart</span>
+                        <span style={{ fontWeight: 900, color: 'var(--text)' }}>Cart</span>
                     </Link>
 
                     {user ? (
@@ -155,7 +160,7 @@ function Navbar() {
                                         padding: '8px 14px',
                                         borderRadius: 999,
                                         border: '1.5px solid rgba(255,152,0,0.35)',
-                                        background: accountOpen ? 'rgba(255,152,0,0.14)' : 'rgba(255,255,255,0.06)',
+                                        background: accountOpen ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)',
                                         cursor: 'pointer',
                                         transition: 'background 0.2s, border 0.2s'
                                     }}
@@ -169,20 +174,20 @@ function Navbar() {
                                             e.target.src = 'http://localhost:5000/images/other_images/dummy_product.jpg';
                                         }}
                                     />
-                                    <span style={{ color: '#fff', fontWeight: 900, fontSize: 14, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <span style={{ color: 'var(--text)', fontWeight: 900, fontSize: 14, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {user.email || user.first_name}
                                     </span>
-                                    <span style={{ color: '#ff9800', fontWeight: 900, fontSize: 12 }}>▼</span>
+                                    <span style={{ color: 'var(--accent)', fontWeight: 900, fontSize: 12 }}>▼</span>
                                 </button>
 
                                 <ul style={{
                                     position: 'absolute',
                                     top: 46,
                                     right: 0,
-                                    background: '#111827',
+                                    background: 'var(--nav-menu-bg)',
                                     border: '1.5px solid rgba(255,152,0,0.45)',
                                     borderRadius: 14,
-                                    boxShadow: '0 18px 40px rgba(0,0,0,0.28)',
+                                    boxShadow: 'var(--shadow-2)',
                                     padding: 8,
                                     margin: 0,
                                     minWidth: 220,
@@ -191,22 +196,22 @@ function Navbar() {
                                     listStyle: 'none'
                                 }}>
                                     <li>
-                                        <Link to="/my-profile" className={`navbar-menu-item ${location.pathname === '/my-profile' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                        <Link to="/my-profile" className={`navbar-menu-item ${location.pathname === '/my-profile' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
                                             <span aria-hidden>👤</span> Profile
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/my-orders" className={`navbar-menu-item ${location.pathname === '/my-orders' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                        <Link to="/my-orders" className={`navbar-menu-item ${location.pathname === '/my-orders' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
                                             <span aria-hidden>📦</span> My Orders
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/my-reviews" className={`navbar-menu-item ${location.pathname === '/my-reviews' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                        <Link to="/my-reviews" className={`navbar-menu-item ${location.pathname === '/my-reviews' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
                                             <span aria-hidden>⭐</span> My Reviews
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/my-favorites" className={`navbar-menu-item ${location.pathname === '/my-favorites' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: '#fff', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                        <Link to="/my-favorites" className={`navbar-menu-item ${location.pathname === '/my-favorites' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
                                             <span aria-hidden>❤️</span> My Favorites
                                         </Link>
                                     </li>
@@ -220,7 +225,7 @@ function Navbar() {
                                                 alignItems: 'center',
                                                 gap: 10,
                                                 padding: '10px 12px',
-                                                color: '#fff',
+                                                color: 'var(--text)',
                                                 textDecoration: 'none',
                                                 fontWeight: 900,
                                                 borderRadius: 10,
@@ -240,18 +245,18 @@ function Navbar() {
                     ) : (
                         <>
                             <Link to="/login" style={{
-                                color: '#ff9800',
+                                color: 'var(--accent)',
                                 textDecoration: 'none',
                                 fontWeight: 900,
                                 fontSize: 14,
                                 padding: '8px 14px',
                                 borderRadius: 999,
                                 border: location.pathname === '/login' ? '1.5px solid rgba(255,152,0,0.55)' : '1.5px solid rgba(255,152,0,0.30)',
-                                background: location.pathname === '/login' ? 'rgba(255,152,0,0.10)' : 'rgba(255,255,255,0.04)',
+                                background: location.pathname === '/login' ? 'rgba(255,152,0,0.10)' : 'var(--nav-pill-bg-2)',
                                 transition: 'background 0.2s, border 0.2s'
                             }}>Login</Link>
                             <Link to="/register" style={{
-                                color: '#fff',
+                                color: 'var(--text)',
                                 textDecoration: 'none',
                                 fontWeight: 900,
                                 fontSize: 14,
@@ -263,6 +268,32 @@ function Navbar() {
                             }}>Register</Link>
                         </>
                     )}
+
+                    <button
+                        type="button"
+                        className="navbar-pill theme-toggle"
+                        onClick={toggleTheme}
+                        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                            padding: '8px 14px',
+                            borderRadius: 999,
+                            border: '1.5px solid rgba(255,152,0,0.35)',
+                            background: 'var(--nav-pill-bg)',
+                            color: 'var(--text)',
+                            cursor: 'pointer',
+                            fontWeight: 900,
+                            fontSize: 14,
+                            transition: 'background 0.2s, border 0.2s'
+                        }}
+                    >
+                        <span aria-hidden style={{ fontSize: 16 }}>{theme === 'dark' ? '🌙' : '☀️'}</span>
+                        <span style={{ color: 'var(--muted-2)' }}>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+                    </button>
                 </div>
             </div>
         </nav>

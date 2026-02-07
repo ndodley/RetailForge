@@ -173,7 +173,7 @@ const MyProfile = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)' }}>
+        <div style={{ minHeight: '100vh', background: 'var(--app-bg)' }}>
             <div
                 style={{
                     maxWidth: 1100,
