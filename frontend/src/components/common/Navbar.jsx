@@ -292,7 +292,6 @@ function Navbar() {
                         }}
                     >
                         <span aria-hidden style={{ fontSize: 16 }}>{theme === 'dark' ? '🌙' : '☀️'}</span>
-                        <span style={{ color: 'var(--muted-2)' }}>{theme === 'dark' ? 'Dark' : 'Light'}</span>
                     </button>
                 </div>
             </div>

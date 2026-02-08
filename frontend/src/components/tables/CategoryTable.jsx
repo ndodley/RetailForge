@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
+import { downloadCsv } from '../../utils/csv';
+import { categoryCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const CategoryTable = () => {
     const [categories, setCategories] = useState([]);
@@ -127,6 +129,22 @@ const CategoryTable = () => {
                     onSearch={() => setFiltersOpen(false)}
                     sections={filterSections}
                 />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+                <button
+                    type="button"
+                    className="admin-btn admin-btn--sm"
+                    onClick={() => downloadCsv({
+                        rows: mapToCsvRows(categoryCsv, visibleCategories),
+                        filename: categoryCsv.filename,
+                        columns: categoryCsv.columns,
+                    })}
+                    disabled={visibleCategories.length === 0}
+                    title={visibleCategories.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
             </div>
 
             {visibleCategories.length > 0 ? (

@@ -11,9 +11,10 @@ const {
   handleDeleteReview,
   handleGetMyReviews,
   handleUpdateMyReview,
-  handleDeleteMyReview
+  handleDeleteMyReview,
+  handleBulkCreateReviews
 } = require('../controllers/reviewController');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, managerOnly } = require('../middleware/authMiddleware');
 
 // Get all reviews (admin)
 router.get('/', handleGetAllReviews);
@@ -31,6 +32,9 @@ router.get('/:id', handleGetReviewById);
 
 // Create a review (requires auth)
 router.post('/', authMiddleware, handleCreateReview);
+
+// Bulk create reviews (admin/manager)
+router.post('/bulk', authMiddleware, managerOnly, handleBulkCreateReviews);
 
 // Update a review (admin or owner)
 router.put('/:id', handleUpdateReview);

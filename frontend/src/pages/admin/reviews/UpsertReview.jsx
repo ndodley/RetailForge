@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import BulkUploadSection from '../../../components/admin/BulkUploadSection';
+import { reviewCsv } from '../../../utils/adminCsvSchemas';
 
 const UpsertReview = () => {
   const { id } = useParams();
@@ -90,6 +92,18 @@ const UpsertReview = () => {
           <button className="admin-btn" type="button" onClick={() => navigate('/admin/reviews')}>Go Back</button>
         </div>
       </form>
+
+      {!id ? (
+        <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+          <BulkUploadSection
+            title="Bulk Upload"
+            description="Upload a reviews CSV. product_id and user_id must reference existing records."
+            columns={reviewCsv.columns}
+            filename={reviewCsv.filename}
+            uploadUrl="http://localhost:5000/api/reviews/bulk"
+          />
+        </div>
+      ) : null}
     </AdminLayout>
   );
 };

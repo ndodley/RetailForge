@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { downloadCsv } from '../../utils/csv';
+import { userCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 'desc' }) => {
     const [users, setUsers] = useState([]);
@@ -64,6 +66,21 @@ const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 
 
     return (
         <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+                <button
+                    type="button"
+                    className="admin-btn admin-btn--sm"
+                    onClick={() => downloadCsv({
+                        rows: mapToCsvRows(userCsv, sortedUsers),
+                        filename: userCsv.filename,
+                        columns: userCsv.columns,
+                    })}
+                    disabled={sortedUsers.length === 0}
+                    title={sortedUsers.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
+            </div>
             {sortedUsers.length > 0 ? (
                 <div className="admin-table">
                     <table>

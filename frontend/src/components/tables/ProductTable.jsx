@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
+import { downloadCsv } from '../../utils/csv';
+import { productCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const ProductTable = () => {
     const [products, setProducts] = useState([]);
@@ -131,7 +133,8 @@ const ProductTable = () => {
             filtered = filtered.filter((p) => {
                 const name = String(p.name || '').toLowerCase();
                 const description = String(p.description || '').toLowerCase();
-                return name.includes(q) || description.includes(q);
+                const brand = String(p.brand || '').toLowerCase();
+                return name.includes(q) || description.includes(q) || brand.includes(q);
             });
         }
 
@@ -160,12 +163,30 @@ const ProductTable = () => {
                 />
             </div>
 
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+                <button
+                    type="button"
+                    className="admin-btn admin-btn--sm"
+                    onClick={() => downloadCsv({
+                        rows: mapToCsvRows(productCsv, filteredProducts),
+                        filename: productCsv.filename,
+                        columns: productCsv.columns,
+                    })}
+                    disabled={filteredProducts.length === 0}
+                    title={filteredProducts.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
+            </div>
+
             {filteredProducts.length > 0 ? (
                 <div className="admin-table">
                     <table>
                         <thead>
                             <tr>
                                 <th style={{ width: 220 }}>Name</th>
+                                <th style={{ width: 180 }}>Brand</th>
+                                <th style={{ width: 120 }}>Rating</th>
                                 <th>Description</th>
                                 <th style={{ width: 140 }}>Price</th>
                                 <th style={{ width: 120 }}>Stock</th>
@@ -178,6 +199,8 @@ const ProductTable = () => {
                             {filteredProducts.map((product) => (
                                 <tr key={product.id}>
                                     <td style={{ fontWeight: 900 }}>{product.name}</td>
+                                    <td style={{ fontWeight: 800 }}>{product.brand || '—'}</td>
+                                    <td style={{ fontWeight: 800 }}>{Number(product.rating || 0).toFixed(1)}</td>
                                     <td style={{ color: 'var(--muted)' }}>{product.description || 'No description'}</td>
                                     <td style={{ fontWeight: 900 }}>${product.price}</td>
                                     <td style={{ fontWeight: 800 }}>{product.stock}</td>

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
+import { downloadCsv } from '../../utils/csv';
+import { reviewCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
@@ -132,6 +134,22 @@ const ReviewTable = () => {
           onSearch={() => setFiltersOpen(false)}
           sections={filterSections}
         />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+        <button
+          type="button"
+          className="admin-btn admin-btn--sm"
+          onClick={() => downloadCsv({
+            rows: mapToCsvRows(reviewCsv, filtered),
+            filename: reviewCsv.filename,
+            columns: reviewCsv.columns,
+          })}
+          disabled={loading || filtered.length === 0}
+          title={loading || filtered.length === 0 ? 'No data to export' : 'Download CSV'}
+        >
+          Download CSV
+        </button>
       </div>
 
       {loading ? (

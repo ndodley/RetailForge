@@ -24,8 +24,8 @@ const Stars = ({ value, onChange, readOnly = false }) => {
                             cursor: readOnly ? 'default' : 'pointer',
                             fontSize: 18,
                             lineHeight: 1,
-                            color: filled ? '#f59e0b' : '#cbd5e1',
-                            textShadow: filled ? '0 1px 6px rgba(245,158,11,0.25)' : 'none',
+                            color: filled ? 'var(--accent)' : 'var(--muted-2)',
+                            textShadow: filled ? '0 1px 10px rgba(0,0,0,0.18)' : 'none',
                         }}
                     >
                         {filled ? '★' : '☆'}
@@ -127,7 +127,7 @@ const MyReviewsPage = () => {
     };
 
     if (loading) {
-        return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
+        return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading...</div>;
     }
 
     if (!user) {
@@ -135,31 +135,36 @@ const MyReviewsPage = () => {
     }
 
     if (pageLoading) {
-        return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading your reviews...</div>;
+        return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading your reviews...</div>;
     }
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
-            <div style={{ maxWidth: 1100, margin: '2.5rem auto', padding: '2rem 1.25rem', background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+            <div style={{ maxWidth: 1100, margin: '2.5rem auto', padding: 0, background: 'var(--surface-2)', borderRadius: 18, boxShadow: 'var(--shadow-2)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                <div style={{ padding: '2rem 1.25rem 1.25rem', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <h2 style={{ fontWeight: 900, margin: 0, color: '#ff9800' }}>My Reviews</h2>
-                    <Link to="/products" style={{ color: '#2196f3', textDecoration: 'underline', fontWeight: 700 }}>
+                    <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)', letterSpacing: 0.3 }}>My Reviews</h2>
+                    <Link to="/products" style={{ color: 'var(--link)', textDecoration: 'underline', fontWeight: 800 }}>
                         Browse products
                     </Link>
                 </div>
 
-                <div style={{ marginTop: 10, color: '#64748b', fontWeight: 600 }}>
+                <div style={{ marginTop: 10, color: 'var(--muted)', fontWeight: 700 }}>
                     View, edit, or delete the reviews you’ve written.
                 </div>
 
+                </div>
+
+                <div style={{ padding: '1.5rem 1.25rem 2rem' }}>
+
                 {error && (
-                    <div style={{ background: '#ffecec', border: '1px solid #ffb3b3', color: '#b00020', padding: '12px 14px', borderRadius: 10, marginTop: 16 }}>
+                    <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--danger)', padding: '12px 14px', borderRadius: 12, marginTop: 16, fontWeight: 800 }}>
                         {error}
                     </div>
                 )}
 
                 {!error && reviews.length === 0 && (
-                    <div style={{ marginTop: 18, color: '#555' }}>
+                    <div style={{ marginTop: 18, color: 'var(--muted-2)', fontWeight: 700 }}>
                         You haven’t written any reviews yet.
                     </div>
                 )}
@@ -171,18 +176,18 @@ const MyReviewsPage = () => {
                             const createdAt = r.created_at ? new Date(r.created_at).toLocaleString() : '';
                             return (
                                 <div key={r.id} style={{
-                                    border: '1px solid #eef2f7',
+                                    border: '1px solid var(--border)',
                                     borderRadius: 16,
                                     padding: 14,
-                                    background: 'linear-gradient(180deg, #ffffff 0%, #fbfdff 100%)',
-                                    boxShadow: '0 10px 28px rgba(2, 6, 23, 0.06)',
+                                    background: 'var(--surface-3)',
+                                    boxShadow: 'var(--shadow-1)',
                                 }}>
                                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                                         <Link to={`/products/${r.product_id}`} style={{ display: 'inline-block', flex: '0 0 auto' }}>
                                             <img
                                                 src={`http://localhost:5000${r.product_image_path || '/images/other_images/dummy_product.jpg'}`}
                                                 alt={r.product_name}
-                                                style={{ width: 74, height: 74, objectFit: 'cover', borderRadius: 12, border: '1px solid #eef2f7' }}
+                                                style={{ width: 74, height: 74, objectFit: 'cover', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface-2)' }}
                                                 onError={(e) => {
                                                     e.target.onerror = null;
                                                     e.target.src = 'http://localhost:5000/images/other_images/dummy_product.jpg';
@@ -191,7 +196,7 @@ const MyReviewsPage = () => {
                                         </Link>
 
                                         <div style={{ flex: 1, minWidth: 0 }}>
-                                            <Link to={`/products/${r.product_id}`} style={{ textDecoration: 'none', color: '#0f172a' }}>
+                                            <Link to={`/products/${r.product_id}`} style={{ textDecoration: 'none', color: 'var(--text)' }}>
                                                 <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.2, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                                     {r.product_name}
                                                 </div>
@@ -202,7 +207,7 @@ const MyReviewsPage = () => {
                                                     onChange={isEditing ? setEditRating : undefined}
                                                     readOnly={!isEditing}
                                                 />
-                                                <div style={{ fontSize: 12, color: '#64748b', fontWeight: 700 }}>{createdAt}</div>
+                                                <div style={{ fontSize: 12, color: 'var(--muted-2)', fontWeight: 800 }}>{createdAt}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -218,7 +223,9 @@ const MyReviewsPage = () => {
                                                     minHeight: 86,
                                                     resize: 'vertical',
                                                     borderRadius: 12,
-                                                    border: '1.5px solid #cbd5e1',
+                                                    border: '1.5px solid var(--border)',
+                                                    background: 'var(--surface-2)',
+                                                    color: 'var(--text)',
                                                     padding: 10,
                                                     fontSize: 14,
                                                     outline: 'none',
@@ -226,11 +233,11 @@ const MyReviewsPage = () => {
                                             />
                                         ) : (
                                             <div style={{
-                                                background: '#f8fafc',
-                                                border: '1px solid #eef2f7',
+                                                background: 'var(--surface-2)',
+                                                border: '1px solid var(--border)',
                                                 borderRadius: 12,
                                                 padding: 10,
-                                                color: '#334155',
+                                                color: 'var(--text)',
                                                 lineHeight: 1.55,
                                                 whiteSpace: 'pre-wrap',
                                             }}>
@@ -249,11 +256,11 @@ const MyReviewsPage = () => {
                                                     style={{
                                                         padding: '10px 12px',
                                                         borderRadius: 12,
-                                                        border: '1.5px solid #cbd5e1',
-                                                        background: '#fff',
+                                                        border: '1.5px solid var(--border)',
+                                                        background: 'var(--surface-2)',
                                                         cursor: 'pointer',
                                                         fontWeight: 900,
-                                                        color: '#0f172a',
+                                                        color: 'var(--text)',
                                                     }}
                                                 >
                                                     Cancel
@@ -266,11 +273,11 @@ const MyReviewsPage = () => {
                                                         padding: '10px 12px',
                                                         borderRadius: 12,
                                                         border: 'none',
-                                                        background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
-                                                        color: '#fff',
+                                                        background: 'var(--success)',
+                                                        color: 'var(--surface-2)',
                                                         cursor: 'pointer',
                                                         fontWeight: 900,
-                                                        boxShadow: '0 10px 22px rgba(34,197,94,0.20)',
+                                                        boxShadow: 'var(--shadow-1)',
                                                     }}
                                                 >
                                                     {saving ? 'Saving…' : 'Save'}
@@ -284,11 +291,11 @@ const MyReviewsPage = () => {
                                                     style={{
                                                         padding: '10px 12px',
                                                         borderRadius: 12,
-                                                        border: '1.5px solid rgba(33,150,243,0.30)',
-                                                        background: 'rgba(33,150,243,0.08)',
+                                                        border: '1.5px solid var(--border)',
+                                                        background: 'var(--nav-pill-bg)',
                                                         cursor: 'pointer',
                                                         fontWeight: 900,
-                                                        color: '#1d4ed8',
+                                                        color: 'var(--link)',
                                                     }}
                                                 >
                                                     Edit
@@ -299,11 +306,11 @@ const MyReviewsPage = () => {
                                                     style={{
                                                         padding: '10px 12px',
                                                         borderRadius: 12,
-                                                        border: '1.5px solid rgba(220,38,38,0.35)',
-                                                        background: 'rgba(220,38,38,0.06)',
+                                                        border: '1.5px solid var(--border)',
+                                                        background: 'var(--nav-pill-bg)',
                                                         cursor: 'pointer',
                                                         fontWeight: 900,
-                                                        color: '#dc2626',
+                                                        color: 'var(--danger)',
                                                     }}
                                                 >
                                                     Delete
@@ -316,6 +323,8 @@ const MyReviewsPage = () => {
                         })}
                     </div>
                 )}
+
+                </div>
             </div>
         </div>
     );

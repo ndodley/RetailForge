@@ -74,6 +74,14 @@ const User = {
         return result.rows[0];
     },
 
+    async updatePasswordById(id, password) {
+        const result = await pool.query(
+            `UPDATE users SET password = $1 WHERE id = $2 RETURNING id`,
+            [password, id]
+        );
+        return result.rows[0];
+    },
+
     async deleteUser(id) {
         const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
         return result.rowCount > 0;

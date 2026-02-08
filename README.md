@@ -19,6 +19,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **Product Details**: See detailed info, images, and reviews for each product
 - **Shopping Cart**: Add, update, and remove items; persistent across sessions
 - **Checkout**: Secure Stripe payment integration
+- **Stock-Safe Checkout**: Product stock is decremented atomically during checkout; checkout fails gracefully if stock is insufficient
 - **Order Confirmation**: Receipt page after successful purchase
 - **My Orders**: View all past orders and their details (products, quantities, totals)
 - **My Favorites**: Save products you like and manage them from a dedicated page
@@ -35,6 +36,8 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **Advanced Search Everywhere (Admin)**: Products, Users, Reviews, Departments, and Categories include Search + Sort + Order
 - **Default Sort Order**: Search panels default to **Ascending** order for consistency
 - **Order Management**: View all orders in the system, see user emails, and inspect order details with product images
+- **CSV Export (Admin)**: Download CSV exports from admin list pages (Departments, Categories, Products, Users, Reviews, Orders)
+- **Bulk Upload (Admin)**: Upload CSV files to bulk-create Departments, Categories, Products, Users, and Reviews (includes preview + template download)
 - **Orders: Details + Actions Columns**: View stays under Details; Edit/Delete are grouped under Actions
 - **Order Status Edit Flow**: “Edit” opens details in edit mode for updating status
 - **Modern Admin UI**: Icon-based action buttons and consistent spacing across admin tables
@@ -44,6 +47,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 ### 🗄️ Database
 
 - **PostgreSQL**: Normalized schema with migrations for all tables (users, products, orders, reviews, etc.)
+- **Product Metadata**: Products support additional fields like `brand` and `rating`
 - **Secure Sessions**: Sessions stored in the database for persistence
 - **Seed Data**: (Recommended) Add demo data for quick setup
 
@@ -108,6 +112,9 @@ cd DepartmentStore1_2025
 
 - Install PostgreSQL and create a database (e.g., `department_store1`)
 - Run all SQL files in `database/migrations/` to create tables
+- If you already created the DB earlier, make sure you also run the latest migrations:
+  - `012_add_brand_rating_to_products_table.sql`
+  - `013_change_users_password_to_varchar.sql`
 - (Optional) Add seed data for demo users/products
 
 ### 3. Backend Setup
@@ -158,8 +165,12 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 ## 📚 API Overview
 
 - **Products**: `/api/products` (GET, POST, PUT, DELETE)
+- **Products Bulk Create (admin/manager)**: `POST /api/products/bulk`
 - **Categories/Departments**: `/api/categories`, `/api/departments`
+- **Categories Bulk Create (admin/manager)**: `POST /api/categories/bulk`
+- **Departments Bulk Create (admin/manager)**: `POST /api/departments/bulk`
 - **Users/Auth**: `/api/users`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`
+- **Users Bulk Create (admin/manager)**: `POST /api/users/bulk`
 - **Current User Profile**:
   - `GET /api/users/me` (get signed-in user profile)
   - `PUT /api/users/me` (update signed-in user profile fields)
@@ -176,6 +187,7 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
   - `GET /api/reviews/my` (current user)
   - `PUT /api/reviews/my/:id` (current user)
   - `DELETE /api/reviews/my/:id` (current user)
+  - **Reviews Bulk Create (admin/manager)**: `POST /api/reviews/bulk`
 - **Favorites**:
   - `GET /api/favorites/my/ids`
   - `GET /api/favorites/my`
@@ -185,13 +197,46 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 
 ---
 
+## 📦 CSV Export & Bulk Upload (Admin)
+
+### CSV Export
+
+- Admin list pages include a **Download CSV** button (where applicable).
+
+### Bulk Upload
+
+- Bulk upload is available on the **“Add New …”** admin pages (not on edit pages).
+- The bulk upload UI includes:
+  - **Download Template** (headers-only CSV)
+  - CSV file picker
+  - Row preview
+  - **Confirm Upload** to POST `{ rows: [...] }`
+
+### CSV Schemas (important)
+
+- CSV parsing is **strict**: headers must match the template exactly.
+- Products CSV uses **category_name** (and optional **department_name**) instead of `category_id`.
+
+**Products (`products.csv`) columns:**
+- `name`, `brand`, `rating`, `description`, `price`, `stock`, `category_name`, `department_name` (optional), `image_path` (optional)
+
+**Categories (`categories.csv`) columns:**
+- `name`, `description`, `department_id`
+
+**Users (`users.csv`) columns:**
+- `first_name`, `last_name`, `email`, `password`, `role`, `phone_number`, `address`
+
+**Reviews (`reviews.csv`) columns:**
+- `product_id`, `user_id`, `rating`, `comment`
+
+---
+
 ## 🛡️ Security & Best Practices
 
-- Passwords are never returned from the API responses
+- Passwords are hashed (bcrypt) and never returned from API responses
 - Session cookies are HTTP-only and sent via `credentials: 'include'`
 - For a production deployment, you should:
-  - Hash passwords (e.g., `bcrypt`) instead of storing plain text
-  - Move the session secret and other secrets fully into `.env`
+  - Ensure secrets (Stripe key, session secret, DB credentials) live in `.env` and are not committed
   - Enable HTTPS and set session cookies to `secure: true`
 
 ---
@@ -216,7 +261,6 @@ These enhancements are in progress or coming soon:
 
 ### Whole Project
 
-- **Product Metadata**: Add additional product fields (e.g., brand/company)
 - **Modernize All Pages**: Refactor all UI to use modern React best practices
 - **Refresh-Safe Auth**: All protected pages now wait for session hydration before redirecting, so admin and user pages are refresh-safe
 - **Fix Project Title**: Update and standardize the project title across all pages

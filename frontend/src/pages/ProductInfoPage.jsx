@@ -347,6 +347,34 @@ const ProductInfoPage = () => {
                             </div>
                         </div>
 
+                        <div style={{ marginTop: 10, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 800 }}>
+                                Brand: <span style={{ color: '#0f172a', fontWeight: 900 }}>{product.brand || '—'}</span>
+                            </div>
+                            <div style={{ fontSize: 13, color: '#64748b', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                Rating:
+                                <span style={{ color: '#0f172a', fontWeight: 900 }}>{Number(product.rating || 0).toFixed(1)}</span>
+                                <span aria-hidden style={{ display: 'inline-flex', gap: 2, transform: 'translateY(-0.5px)' }}>
+                                    {Array.from({ length: 5 }).map((_, idx) => {
+                                        const filled = idx < Math.round(Number(product.rating || 0));
+                                        return (
+                                            <span
+                                                key={idx}
+                                                style={{
+                                                    fontSize: 14,
+                                                    lineHeight: 1,
+                                                    color: filled ? '#f59e0b' : '#cbd5e1',
+                                                    fontWeight: 900,
+                                                }}
+                                            >
+                                                {filled ? '★' : '☆'}
+                                            </span>
+                                        );
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+
                         <p style={{ fontSize: '1.08rem', color: '#334155', marginTop: 14, marginBottom: 22, lineHeight: 1.7 }}>
                             {product.description}
                         </p>

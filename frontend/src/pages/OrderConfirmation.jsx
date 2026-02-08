@@ -26,59 +26,182 @@ const OrderConfirmation = () => {
 
     if (!order) {
         return (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>
-                <h2>Order not found</h2>
-                <Link to="/">Return to Home</Link>
+            <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>
+                <h2 style={{ marginTop: 0 }}>Order not found</h2>
+                <Link to="/" style={{ color: 'var(--link)', fontWeight: 700 }}>Return to Home</Link>
             </div>
         );
     }
     if (loading) {
-        return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading receipt...</div>;
+        return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading receipt...</div>;
     }
 
     return (
         <div className="order-confirmation-bg" style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="order-confirmation-container" style={{ maxWidth: 700, width: '100%', margin: '3rem auto', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 12px 40px 0 rgba(99,91,255,0.13)', background: 'linear-gradient(120deg, #f8fffe 0%, #e3fcec 100%)', border: '2px solid #28a745', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: -32, left: '50%', transform: 'translateX(-50%)', background: '#fff', borderRadius: '50%', boxShadow: '0 2px 8px rgba(40,167,69,0.10)', padding: 12, border: '2.5px solid #28a745' }}>
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="24" fill="#28a745"/><path d="M34 18L21.5 30.5L14 23" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <h2 className="order-confirmation-title" style={{ textAlign: 'center', fontWeight: 900, marginBottom: 28, marginTop: 24, fontSize: 34, color: '#2196f3', letterSpacing: 1, textShadow: '0 2px 8px #b2f0ec' }}>Order Confirmed!</h2>
-                <div className="order-confirmation-summary" style={{ marginBottom: 32, background: 'rgba(255,255,255,0.97)', borderRadius: 16, padding: '1.5rem', boxShadow: '0 2px 8px rgba(40,167,69,0.10)', border: '1.5px solid #28a745', display: 'flex', flexWrap: 'wrap', gap: 24, justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: 18, marginBottom: 8, flex: '1 1 220px' }}><strong>Order ID:</strong> {order.id}</div>
-                    <div style={{ fontSize: 18, marginBottom: 8, flex: '1 1 220px' }}><strong>Total:</strong> <span style={{ color: '#28a745', fontWeight: 700 }}>${order.total}</span></div>
-                    <div style={{ fontSize: 18, marginBottom: 8, flex: '1 1 220px' }}><strong>Address:</strong> {order.address}</div>
-                    <div style={{ fontSize: 18, marginBottom: 8, flex: '1 1 220px' }}><strong>Status:</strong> <span style={{ color: order.status === 'paid' ? '#28a745' : '#888', fontWeight: 700 }}>{order.status}</span></div>
-                    <div style={{ fontSize: 18, marginBottom: 8, flex: '1 1 220px' }}><strong>Date:</strong> {new Date(order.created_at).toLocaleString()}</div>
-                </div>
-                <div className="order-confirmation-items" style={{ marginBottom: 32, background: '#fff', borderRadius: 16, padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                    <h3 className="order-confirmation-items-title" style={{ fontWeight: 800, marginBottom: 18, color: '#2196f3', fontSize: 22, letterSpacing: 1, textAlign: 'center', textTransform: 'uppercase' }}>🧾 Order Items</h3>
-                    {error && <div className="order-confirmation-items-error" style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
-                    <div className="order-confirmation-items-table-wrapper" style={{ overflowX: 'auto' }}>
-                        <table className="order-confirmation-items-table" style={{ width: '100%', borderCollapse: 'collapse', background: '#f4fafd', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                            <thead style={{ background: '#e3fcec' }}>
-                                <tr style={{ borderBottom: '2px solid #b2f0ec' }}>
-                                    <th style={{ padding: '16px 12px', fontWeight: 800, fontSize: 16, textAlign: 'left', minWidth: 160, color: '#2196f3', letterSpacing: 1 }}>Product</th>
-                                    <th style={{ padding: '16px 12px', fontWeight: 800, fontSize: 16, textAlign: 'right', minWidth: 100, color: '#2196f3', letterSpacing: 1 }}>Price</th>
-                                    <th style={{ padding: '16px 12px', fontWeight: 800, fontSize: 16, textAlign: 'center', minWidth: 80, color: '#2196f3', letterSpacing: 1 }}>Quantity</th>
-                                    <th style={{ padding: '16px 12px', fontWeight: 800, fontSize: 16, textAlign: 'right', minWidth: 120, color: '#2196f3', letterSpacing: 1 }}>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map(item => (
-                                    <tr key={item.id} style={{ borderBottom: '1px solid #e3fcec', background: '#fff', transition: 'background 0.2s' }}>
-                                        <td style={{ padding: '16px 12px', fontWeight: 600 }}>{item.product_name}</td>
-                                        <td style={{ padding: '16px 12px', color: '#2196f3', fontWeight: 700, textAlign: 'right' }}>${item.price}</td>
-                                        <td style={{ padding: '16px 12px', fontWeight: 600, textAlign: 'center' }}>{item.quantity}</td>
-                                        <td style={{ padding: '16px 12px', fontWeight: 700, textAlign: 'right', color: '#28a745' }}>${(item.price * item.quantity).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+            <div className="order-confirmation-container" style={{
+                maxWidth: 760,
+                width: '100%',
+                margin: '3rem auto',
+                padding: '0',
+                borderRadius: 24,
+                boxShadow: 'var(--shadow-2)',
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                overflow: 'hidden',
+            }}>
+                <div style={{
+                    padding: '2.25rem 2rem 1.5rem',
+                    background: 'var(--nav-bg)',
+                    borderBottom: '1px solid var(--border)',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                        <div style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 999,
+                            display: 'grid',
+                            placeItems: 'center',
+                            background: 'var(--success)',
+                            boxShadow: 'var(--shadow-1)',
+                            border: '2px solid var(--border)',
+                        }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 6L9 17L4 12" stroke="var(--surface-2)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </div>
+                        <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: 900, fontSize: 30, letterSpacing: 0.4, color: 'var(--text)' }}>Order Confirmed</div>
+                            <div style={{ marginTop: 6, fontWeight: 700, color: 'var(--muted)' }}>
+                                Thanks — your payment was successful.
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="order-confirmation-footer" style={{ marginBottom: 24, textAlign: 'center' }}>
-                    <h3 className="order-confirmation-thankyou" style={{ fontWeight: 900, color: '#28a745', marginBottom: 8, fontSize: 24, letterSpacing: 1, textShadow: '0 2px 8px #b2f0ec' }}>Thank you for your purchase!</h3>
-                    <Link className="order-confirmation-home-link" to="/" style={{ color: '#2196f3', fontWeight: 700, fontSize: 20, textDecoration: 'underline', letterSpacing: 1 }}>Return to Home</Link>
+
+                <div style={{ padding: '1.75rem 2rem 2rem', color: 'var(--text)' }}>
+                    <div className="order-confirmation-summary" style={{
+                        marginBottom: 24,
+                        background: 'var(--surface-3)',
+                        borderRadius: 16,
+                        padding: '1.25rem',
+                        boxShadow: 'var(--shadow-1)',
+                        border: '1px solid var(--border)',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: 12,
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Order ID:</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{order.id}</div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Total:</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--success)', whiteSpace: 'nowrap' }}>${order.total}</div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Status:</div>
+                            <span style={{
+                                display: 'inline-block',
+                                padding: '6px 10px',
+                                borderRadius: 999,
+                                background: 'var(--nav-pill-bg)',
+                                border: '1px solid var(--border)',
+                                fontWeight: 900,
+                                color: order.status === 'paid' ? 'var(--success)' : 'var(--muted-2)',
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                fontSize: 12,
+                            }}>
+                                {order.status}
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Date:</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{new Date(order.created_at).toLocaleString()}</div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, gridColumn: '1 / -1' }}>
+                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Ship To:</div>
+                            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{order.address}</div>
+                        </div>
+                    </div>
+
+                    <div className="order-confirmation-items" style={{
+                        marginBottom: 24,
+                        background: 'var(--surface-2)',
+                        borderRadius: 16,
+                        padding: '1.25rem',
+                        boxShadow: 'var(--shadow-1)',
+                        border: '1px solid var(--border)',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                            <div style={{ fontWeight: 900, fontSize: 18, letterSpacing: 0.4 }}>Order Items</div>
+                            <div style={{ fontWeight: 800, color: 'var(--muted-2)' }}>{items.length} item{items.length === 1 ? '' : 's'}</div>
+                        </div>
+
+                        {error && <div className="order-confirmation-items-error" style={{ color: 'var(--danger)', marginBottom: 12, fontWeight: 800 }}>{error}</div>}
+
+                        <div className="order-confirmation-items-table-wrapper" style={{ overflowX: 'auto' }}>
+                            <table className="order-confirmation-items-table" style={{ width: '100%', borderCollapse: 'collapse', background: 'var(--surface-3)', borderRadius: 12, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
+                                <thead style={{ background: 'var(--nav-pill-bg)' }}>
+                                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <th style={{ padding: '14px 12px', fontWeight: 900, fontSize: 14, textAlign: 'left', minWidth: 280, color: 'var(--text)', letterSpacing: 0.4 }}>Product</th>
+                                        <th style={{ padding: '14px 12px', fontWeight: 900, fontSize: 14, textAlign: 'right', minWidth: 90, color: 'var(--text)', letterSpacing: 0.4 }}>Price</th>
+                                        <th style={{ padding: '14px 12px', fontWeight: 900, fontSize: 14, textAlign: 'center', minWidth: 80, color: 'var(--text)', letterSpacing: 0.4 }}>Qty</th>
+                                        <th style={{ padding: '14px 12px', fontWeight: 900, fontSize: 14, textAlign: 'right', minWidth: 110, color: 'var(--text)', letterSpacing: 0.4 }}>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map(item => (
+                                        <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+                                            <td style={{ padding: '14px 12px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    <Link to={`/products/${item.product_id}`} style={{ display: 'inline-block' }}>
+                                                        <img
+                                                            src={`http://localhost:5000${item.image_path || '/images/other_images/dummy_product.jpg'}`}
+                                                            alt={item.product_name}
+                                                            width="56"
+                                                            height="56"
+                                                            style={{ objectFit: 'cover', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface-3)', display: 'block' }}
+                                                            onError={(e) => { e.currentTarget.src = 'http://localhost:5000/images/other_images/dummy_product.jpg'; }}
+                                                        />
+                                                    </Link>
+                                                    <div style={{ minWidth: 0 }}>
+                                                        <Link to={`/products/${item.product_id}`} style={{
+                                                            color: 'var(--text)',
+                                                            fontWeight: 900,
+                                                            textDecoration: 'none',
+                                                            display: 'block',
+                                                            whiteSpace: 'nowrap',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            maxWidth: 360,
+                                                        }}>
+                                                            {item.product_name}
+                                                        </Link>
+                                                        <div style={{ marginTop: 4, color: 'var(--muted-2)', fontWeight: 700, fontSize: 12 }}>
+                                                            Product ID: {item.product_id}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '14px 12px', color: 'var(--link)', fontWeight: 900, textAlign: 'right' }}>${item.price}</td>
+                                            <td style={{ padding: '14px 12px', fontWeight: 900, textAlign: 'center', color: 'var(--text)' }}>{item.quantity}</td>
+                                            <td style={{ padding: '14px 12px', fontWeight: 900, textAlign: 'right', color: 'var(--success)' }}>${(item.price * item.quantity).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="order-confirmation-footer" style={{ textAlign: 'center' }}>
+                        <div style={{ fontWeight: 900, color: 'var(--success)', marginBottom: 10, fontSize: 18, letterSpacing: 0.3 }}>Thank you for your purchase!</div>
+                        <Link className="order-confirmation-home-link" to="/" style={{ color: 'var(--link)', fontWeight: 900, fontSize: 16, textDecoration: 'underline', letterSpacing: 0.3 }}>Return to Home</Link>
+                    </div>
                 </div>
             </div>
         </div>
