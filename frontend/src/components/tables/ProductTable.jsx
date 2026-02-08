@@ -187,7 +187,6 @@ const ProductTable = () => {
                                 <th style={{ width: 220 }}>Name</th>
                                 <th style={{ width: 180 }}>Brand</th>
                                 <th style={{ width: 120 }}>Rating</th>
-                                <th>Description</th>
                                 <th style={{ width: 140 }}>Price</th>
                                 <th style={{ width: 120 }}>Stock</th>
                                 <th style={{ width: 220 }}>Category</th>
@@ -197,11 +196,15 @@ const ProductTable = () => {
                         </thead>
                         <tbody>
                             {filteredProducts.map((product) => (
-                                <tr key={product.id}>
+                                <tr
+                                    key={product.id}
+                                    onClick={() => navigate(`/products/${product.id}`)}
+                                    style={{ cursor: 'pointer' }}
+                                    title="View product"
+                                >
                                     <td style={{ fontWeight: 900 }}>{product.name}</td>
                                     <td style={{ fontWeight: 800 }}>{product.brand || '—'}</td>
                                     <td style={{ fontWeight: 800 }}>{Number(product.rating || 0).toFixed(1)}</td>
-                                    <td style={{ color: 'var(--muted)' }}>{product.description || 'No description'}</td>
                                     <td style={{ fontWeight: 900 }}>${product.price}</td>
                                     <td style={{ fontWeight: 800 }}>{product.stock}</td>
                                     <td style={{ fontWeight: 800 }}>{product.category_name || 'Unassigned'}</td>
@@ -223,11 +226,23 @@ const ProductTable = () => {
                                     </td>
                                     <td>
                                         <div className="admin-row-actions">
-                                            <button className="admin-btn admin-btn--sm" onClick={() => navigate(`/admin/products/upsert/${product.id}`)}>
+                                            <button
+                                                className="admin-btn admin-btn--sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/admin/products/upsert/${product.id}`);
+                                                }}
+                                            >
                                                 <span className="admin-action-icon" aria-hidden="true">✎</span>
                                                 Edit
                                             </button>
-                                            <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => handleDelete(product.id)}>
+                                            <button
+                                                className="admin-btn admin-btn--sm admin-btn--danger"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDelete(product.id);
+                                                }}
+                                            >
                                                 <span className="admin-action-icon" aria-hidden="true">✕</span>
                                                 Delete
                                             </button>

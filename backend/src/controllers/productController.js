@@ -43,6 +43,19 @@ const handleCreateProduct = async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        if (String(name).length > 255) {
+            return res.status(400).json({ error: 'Name must be 255 characters or fewer.' });
+        }
+
+        if (brand !== undefined && brand !== null && String(brand).length > 255) {
+            return res.status(400).json({ error: 'Brand must be 255 characters or fewer.' });
+        }
+
+        // Description is TEXT in DB (see migration 012), but keep a reasonable guardrail.
+        if (String(description).length > 20000) {
+            return res.status(400).json({ error: 'Description is too long.' });
+        }
+
         const ratingValue = rating === undefined || rating === null || rating === '' ? 0 : Number(rating);
         if (Number.isNaN(ratingValue) || ratingValue < 0 || ratingValue > 5) {
             return res.status(400).json({ error: 'Rating must be between 0 and 5' });
@@ -71,7 +84,13 @@ const handleCreateProduct = async (req, res) => {
         res.json(product);
     } catch (error) {
         console.error('Error in handleCreateProduct:', error);
-        res.status(500).json({ error: error.message });
+
+        // Postgres: string data right truncation (e.g., VARCHAR too long)
+        if (error && error.code === '22001') {
+            return res.status(400).json({ error: 'One or more fields are too long for the database.' });
+        }
+
+        res.status(500).json({ error: error?.message || 'Internal Server Error' });
     }
 
 };
@@ -101,6 +120,18 @@ const handleUpdateProduct = async (req, res) => {
 
         if (!existingProduct) {
             return res.status(404).json({ error: 'Product not found' });
+        }
+
+        if (name !== undefined && name !== null && String(name).length > 255) {
+            return res.status(400).json({ error: 'Name must be 255 characters or fewer.' });
+        }
+
+        if (brand !== undefined && brand !== null && String(brand).length > 255) {
+            return res.status(400).json({ error: 'Brand must be 255 characters or fewer.' });
+        }
+
+        if (description !== undefined && description !== null && String(description).length > 20000) {
+            return res.status(400).json({ error: 'Description is too long.' });
         }
 
         const ratingValue = rating === undefined || rating === null || rating === '' ? (existingProduct.rating ?? 0) : Number(rating);
@@ -135,7 +166,12 @@ const handleUpdateProduct = async (req, res) => {
         res.json(updatedProduct);
     } catch (error) {
         console.error('❌ Error updating product:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+
+        if (error && error.code === '22001') {
+            return res.status(400).json({ error: 'One or more fields are too long for the database.' });
+        }
+
+        res.status(500).json({ error: error?.message || 'Internal Server Error' });
     }
 
 };
