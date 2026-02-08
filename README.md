@@ -13,10 +13,11 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 ### 🛒 Customer Features
 
+- **Modern Home Page Carousel**: Larger, readable product cards in a horizontal showcase (supports mouse drag-to-scroll) with favorites + rating and click-through to product details
 - **Browse Products**: View, search, and filter products by department and category
 - **Advanced Search (Compact)**: Collapsible filter panel with search + sort + order
 - **Dependent Filters**: Category options depend on selected Department
-- **Product Details**: See detailed info, images, and reviews for each product
+- **Product Details (Modernized)**: Improved dark-mode visuals, fixed-size product image frame (shows full image), availability status based on stock, and description formatting that preserves paragraphs/newlines
 - **Shopping Cart**: Add, update, and remove items; persistent across sessions
 - **Checkout**: Secure Stripe payment integration
 - **Stock-Safe Checkout**: Product stock is decremented atomically during checkout; checkout fails gracefully if stock is insufficient
@@ -35,6 +36,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **CRUD Operations**: Create, update, and delete all entities
 - **Advanced Search Everywhere (Admin)**: Products, Users, Reviews, Departments, and Categories include Search + Sort + Order
 - **Default Sort Order**: Search panels default to **Ascending** order for consistency
+- **Admin Products UX Improvements**: Product rows are clickable to navigate to product details; description column removed from the list view while preserving Edit/Delete actions
 - **Order Management**: View all orders in the system, see user emails, and inspect order details with product images
 - **CSV Export (Admin)**: Download CSV exports from admin list pages (Departments, Categories, Products, Users, Reviews, Orders)
 - **Bulk Upload (Admin)**: Upload CSV files to bulk-create Departments, Categories, Products, Users, and Reviews (includes preview + template download)
@@ -48,6 +50,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 - **PostgreSQL**: Normalized schema with migrations for all tables (users, products, orders, reviews, etc.)
 - **Product Metadata**: Products support additional fields like `brand` and `rating`
+- **Long Descriptions Supported**: `products.description` is stored as `TEXT` to support multi-paragraph descriptions
 - **Secure Sessions**: Sessions stored in the database for persistence
 - **Seed Data**: (Recommended) Add demo data for quick setup
 
@@ -113,8 +116,7 @@ cd DepartmentStore1_2025
 - Install PostgreSQL and create a database (e.g., `department_store1`)
 - Run all SQL files in `database/migrations/` to create tables
 - If you already created the DB earlier, make sure you also run the latest migrations:
-  - `012_add_brand_rating_to_products_table.sql`
-  - `013_change_users_password_to_varchar.sql`
+  - `012_alter_products_description_to_text.sql`
 - (Optional) Add seed data for demo users/products
 
 ### 3. Backend Setup
@@ -218,15 +220,19 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 - Products CSV uses **category_name** (and optional **department_name**) instead of `category_id`.
 
 **Products (`products.csv`) columns:**
+
 - `name`, `brand`, `rating`, `description`, `price`, `stock`, `category_name`, `department_name` (optional), `image_path` (optional)
 
 **Categories (`categories.csv`) columns:**
+
 - `name`, `description`, `department_id`
 
 **Users (`users.csv`) columns:**
+
 - `first_name`, `last_name`, `email`, `password`, `role`, `phone_number`, `address`
 
 **Reviews (`reviews.csv`) columns:**
+
 - `product_id`, `user_id`, `rating`, `comment`
 
 ---
@@ -257,7 +263,7 @@ These enhancements are in progress or coming soon:
 
 ### Admin Pages
 
-- **Admin Orders page**: Admin/manager can view all orders, see user emails, and inspect order details with product images (new!)
+- **More admin polish**: Continued UX improvements, consistency, and validations across all admin forms
 
 ### Whole Project
 
