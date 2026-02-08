@@ -2,8 +2,8 @@
 const pool = require('../db');
 
 // Create a new order detail (item in an order)
-const createOrderDetail = async ({ order_id, product_id, product_name, quantity, price }) => {
-    const result = await pool.query(
+const createOrderDetail = async ({ order_id, product_id, product_name, quantity, price }, db = pool) => {
+    const result = await db.query(
         `INSERT INTO order_details (order_id, product_id, product_name, quantity, price) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [order_id, product_id, product_name, quantity, price]
     );

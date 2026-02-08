@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../hooks/useAuth';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import { downloadCsv } from '../../../utils/csv';
 
 const OrderList = () => {
     const { user, loading } = useAuth();
@@ -75,6 +76,17 @@ const OrderList = () => {
         <AdminLayout
             title="Admin Orders"
             subtitle="View all orders across the store, including the customer email."
+            actions={(
+                <button
+                    type="button"
+                    className="admin-btn"
+                    onClick={() => downloadCsv({ rows: orders, filename: 'orders.csv' })}
+                    disabled={orders.length === 0}
+                    title={orders.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
+            )}
         >
             {error && (
                 <div className="admin-alert admin-alert--error">

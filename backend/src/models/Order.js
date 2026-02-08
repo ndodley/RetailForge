@@ -2,9 +2,9 @@
 const pool = require('../db');
 
 // Create a new order
-const createOrder = async ({ user_id, total, address, status = 'pending' }) => {
+const createOrder = async ({ user_id, total, address, status = 'pending' }, db = pool) => {
     // Insert a new order and return the created row
-    const result = await pool.query(
+    const result = await db.query(
         `INSERT INTO orders (user_id, total, address, status) VALUES ($1, $2, $3, $4) RETURNING *`,
         [user_id, total, address, status]
     );

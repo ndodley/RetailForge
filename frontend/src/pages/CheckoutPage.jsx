@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from "react-router-dom";
@@ -17,6 +17,50 @@ const CheckoutPage = () => {
     const [address, setAddress] = useState('');
     const [localCartItems, setLocalCartItems] = useState(cartItems || []);
     const { user } = useAuth();
+
+    const [stripeTheme, setStripeTheme] = useState({
+        text: '#000000',
+        muted: '#6b7280',
+        border: '#d1d5db',
+        surface: '#ffffff',
+    });
+
+    useEffect(() => {
+        const readTheme = () => {
+            const styles = getComputedStyle(document.documentElement);
+            const readVar = (name, fallback) => {
+                const value = styles.getPropertyValue(name).trim();
+                return value || fallback;
+            };
+
+            setStripeTheme({
+                text: readVar('--text', '#000000'),
+                muted: readVar('--muted-2', '#6b7280'),
+                border: readVar('--border', '#d1d5db'),
+                surface: readVar('--surface-2', '#ffffff'),
+            });
+        };
+
+        readTheme();
+
+        const observer = new MutationObserver(() => readTheme());
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        return () => observer.disconnect();
+    }, []);
+
+    const cardElementOptions = useMemo(() => ({
+        style: {
+            base: {
+                fontSize: '16px',
+                color: stripeTheme.text,
+                iconColor: stripeTheme.text,
+                '::placeholder': { color: stripeTheme.muted },
+            },
+            invalid: {
+                color: 'var(--danger)',
+            },
+        },
+    }), [stripeTheme.muted, stripeTheme.text]);
 
     // Handle Stripe payment form submission
     const handleSubmit = async (e) => {
@@ -75,7 +119,7 @@ const CheckoutPage = () => {
                         ))}
                     </ul>
                     <div style={{ fontWeight: 700, fontSize: 20, marginTop: 16 }}>
-                        Total: <span style={{ color: '#28a745' }}>${cartTotal?.toFixed(2)}</span>
+                        Total: <span style={{ color: 'var(--success)' }}>${cartTotal?.toFixed(2)}</span>
                     </div>
                 </div>
                 {/* Stripe payment form */}
@@ -90,13 +134,21 @@ const CheckoutPage = () => {
                         style={{ width: '100%', marginBottom: 16, padding: 10, fontSize: 16, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--surface-2)', color: 'var(--text)', outline: 'none' }}
                     />
                     {/* CardElement securely collects card details */}
-                    <CardElement options={{ style: { base: { fontSize: '18px' } } }} />
+                    <div style={{
+                        marginTop: 12,
+                        padding: 12,
+                        borderRadius: 10,
+                        border: `1.5px solid ${stripeTheme.border}`,
+                        background: stripeTheme.surface,
+                    }}>
+                        <CardElement options={cardElementOptions} />
+                    </div>
                     <button
                         type="submit"
                         disabled={!stripe || processing}
                         style={{
-                            background: '#635bff',
-                            color: '#fff',
+                            background: 'var(--link)',
+                            color: 'var(--surface-2)',
                             border: 'none',
                             borderRadius: 8,
                             padding: '14px 36px',

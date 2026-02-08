@@ -1,4 +1,9 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+
+function looksLikeBcryptHash(value) {
+    return typeof value === 'string' && /^\$2[aby]\$\d{2}\$/.test(value);
+}
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -6,7 +11,27 @@ exports.login = async (req, res) => {
 
     // Treat invalid credentials as a normal UI state (no noisy 401 in browser console).
     // The frontend should show a friendly message when user is null.
-    if (!user || user.password !== password) {
+    if (!user) {
+        return res.json({ user: null, error: 'Invalid credentials' });
+    }
+
+    const stored = user.password;
+
+    // Support both bcrypt hashes (new) and plaintext passwords (legacy).
+    let ok = false;
+    if (looksLikeBcryptHash(stored)) {
+        ok = await bcrypt.compare(String(password || ''), stored);
+    } else {
+        ok = String(stored || '') === String(password || '');
+        // Auto-upgrade legacy plaintext password to bcrypt on successful login.
+        if (ok) {
+            const hashed = await bcrypt.hash(String(password || ''), 10);
+            await User.updatePasswordById(user.id, hashed);
+            user.password = hashed;
+        }
+    }
+
+    if (!ok) {
         return res.json({ user: null, error: 'Invalid credentials' });
     }
 

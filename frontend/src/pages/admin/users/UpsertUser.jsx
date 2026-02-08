@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminLayout from "../../../components/admin/AdminLayout";
+import BulkUploadSection from '../../../components/admin/BulkUploadSection';
+import { userCsv } from '../../../utils/adminCsvSchemas';
 
 const UpsertUser = () => {
     const { id } = useParams();
@@ -85,6 +87,18 @@ const UpsertUser = () => {
                     <button className="admin-btn" type="button" onClick={() => navigate("/admin/users")}>Go Back</button>
                 </div>
             </form>
+
+            {!id ? (
+                <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+                    <BulkUploadSection
+                        title="Bulk Upload"
+                        description="Upload a users CSV to create multiple users. Password is required for each row."
+                        columns={userCsv.columns}
+                        filename={userCsv.filename}
+                        uploadUrl="http://localhost:5000/api/users/bulk"
+                    />
+                </div>
+            ) : null}
         </AdminLayout>
     );
 };

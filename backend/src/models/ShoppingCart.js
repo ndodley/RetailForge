@@ -12,8 +12,8 @@ const ShoppingCart = {
     },
 
     // Get cart by user id
-    async getCartByUserId(user_id) {
-        const result = await pool.query(
+    async getCartByUserId(user_id, db = pool) {
+        const result = await db.query(
             'SELECT * FROM shopping_cart WHERE user_id = $1',
             [user_id]
         );
@@ -33,8 +33,8 @@ const ShoppingCart = {
     },
 
     // Get all items in a cart
-    async getItems(cart_id) {
-        const result = await pool.query(
+    async getItems(cart_id, db = pool) {
+        const result = await db.query(
             `SELECT sci.*, p.name, p.price, p.image_path
              FROM shopping_cart_items sci
              JOIN products p ON sci.product_id = p.id
@@ -63,8 +63,8 @@ const ShoppingCart = {
     },
 
     // Clear cart
-    async clearCart(cart_id) {
-        await pool.query('DELETE FROM shopping_cart_items WHERE cart_id = $1', [cart_id]);
+    async clearCart(cart_id, db = pool) {
+        await db.query('DELETE FROM shopping_cart_items WHERE cart_id = $1', [cart_id]);
         return true;
     }
 };

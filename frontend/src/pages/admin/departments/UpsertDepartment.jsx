@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import BulkUploadSection from '../../../components/admin/BulkUploadSection';
+import { departmentCsv } from '../../../utils/adminCsvSchemas';
 
 const UpsertDepartment = () => {
     const { id } = useParams();
@@ -64,6 +66,18 @@ const UpsertDepartment = () => {
                     </button>
                 </div>
             </form>
+
+            {!id ? (
+                <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+                    <BulkUploadSection
+                        title="Bulk Upload"
+                        description="Upload a departments CSV to create multiple departments at once."
+                        columns={departmentCsv.columns}
+                        filename={departmentCsv.filename}
+                        uploadUrl="http://localhost:5000/api/departments/bulk"
+                    />
+                </div>
+            ) : null}
         </AdminLayout>
     );
 };

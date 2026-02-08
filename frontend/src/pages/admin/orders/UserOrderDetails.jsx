@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useParams, useSearchParams } from 'react-r
 import axios from 'axios';
 import { useAuth } from '../../../hooks/useAuth';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import { downloadCsv } from '../../../utils/csv';
 
 const UserOrderDetails = () => {
 	const { user, loading } = useAuth();
@@ -102,15 +103,38 @@ const UserOrderDetails = () => {
 	}
 
 	const items = Array.isArray(order.items) ? order.items : [];
+	const exportRows = useMemo(() => {
+		const summary = {
+			order_id: order.id,
+			status: order.status,
+			total: order.total,
+			created_at: order.created_at,
+			user_email: order.user_email,
+			address: order.address,
+		};
+
+		if (items.length === 0) return [summary];
+		return items.map((item) => ({ ...summary, ...item }));
+	}, [items, order.address, order.created_at, order.id, order.status, order.total, order.user_email]);
 
 	return (
 		<AdminLayout
 			title={`Order #${order.id}`}
 			subtitle={order.user_email ? `Customer: ${order.user_email}` : 'Order details'}
 			actions={(
-				<Link to="/admin/orders" className="admin-link-btn admin-btn">
-					Back to Orders
-				</Link>
+				<>
+					<Link to="/admin/orders" className="admin-link-btn admin-btn">
+						Back to Orders
+					</Link>
+					<button
+						type="button"
+						className="admin-btn"
+						onClick={() => downloadCsv({ rows: exportRows, filename: `order_${order.id}.csv` })}
+						title="Download CSV"
+					>
+						Download CSV
+					</button>
+				</>
 			)}
 		>
 			{error ? <div className="admin-alert admin-alert--error">{error}</div> : null}

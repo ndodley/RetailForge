@@ -1,4 +1,10 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const pool = require('../db');
+
+function looksLikeBcryptHash(value) {
+    return typeof value === 'string' && /^\$2[aby]\$\d{2}\$/.test(value);
+}
 
 // ✅ Register User (Authentication Logic Preserved)
 exports.registerUser = async (req, res) => {
@@ -10,9 +16,15 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
-        // Create user
-        const newUser = await User.createUser({ first_name, last_name, email, password, role, phone_number, address });
-        res.status(201).json(newUser);
+        const hashed = await bcrypt.hash(String(password || ''), 10);
+
+        // Create user (store hashed password)
+        const newUser = await User.createUser({ first_name, last_name, email, password: hashed, role, phone_number, address });
+
+        // Never return password
+        // eslint-disable-next-line no-unused-vars
+        const { password: _pw, ...safeUser } = newUser;
+        res.status(201).json(safeUser);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -23,10 +35,31 @@ exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findUserByEmail(email);
-        if (!user || user.password !== password) {
+        if (!user) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-        res.status(200).json({ message: 'Login successful', user });
+
+        const stored = user.password;
+        let ok = false;
+        if (looksLikeBcryptHash(stored)) {
+            ok = await bcrypt.compare(String(password || ''), stored);
+        } else {
+            ok = String(stored || '') === String(password || '');
+            if (ok) {
+                const hashed = await bcrypt.hash(String(password || ''), 10);
+                await User.updatePasswordById(user.id, hashed);
+                user.password = hashed;
+            }
+        }
+
+        if (!ok) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        // Never return password
+        // eslint-disable-next-line no-unused-vars
+        const { password: _pw, ...safeUser } = user;
+        res.status(200).json({ message: 'Login successful', user: safeUser });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -77,7 +110,16 @@ exports.getUserById = async (req, res) => {
 // ✅ Update user
 exports.updateUser = async (req, res) => {
     try {
-        const updatedUser = await User.updateUser(req.params.id, req.body);
+        const nextBody = { ...req.body };
+        if (Object.prototype.hasOwnProperty.call(nextBody, 'password')) {
+            // If password is provided and is not already a bcrypt hash, hash it.
+            const nextPassword = nextBody.password;
+            if (typeof nextPassword === 'string' && nextPassword.length > 0 && !looksLikeBcryptHash(nextPassword)) {
+                nextBody.password = await bcrypt.hash(nextPassword, 10);
+            }
+        }
+
+        const updatedUser = await User.updateUser(req.params.id, nextBody);
         if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -174,5 +216,59 @@ exports.updateMyProfile = async (req, res) => {
         }
 
         res.status(500).json({ error: error.message });
+    }
+};
+
+// ✅ Bulk create users (admin/manager only)
+exports.bulkCreateUsers = async (req, res) => {
+    const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    if (!rows.length) {
+        return res.status(400).json({ error: 'No rows provided.' });
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        let inserted = 0;
+        for (const row of rows) {
+            const first_name = String(row?.first_name ?? '').trim();
+            const last_name = String(row?.last_name ?? '').trim();
+            const email = String(row?.email ?? '').trim();
+            const passwordRaw = String(row?.password ?? '').trim();
+            const role = String(row?.role ?? 'customer').trim() || 'customer';
+            const phone_number = String(row?.phone_number ?? '').trim() || null;
+            const address = String(row?.address ?? '').trim() || null;
+
+            if (!first_name || !last_name || !email || !passwordRaw) {
+                return res.status(400).json({ error: 'Each user row requires first_name, last_name, email, and password.' });
+            }
+
+            // Check email already exists
+            const existing = await client.query('SELECT id FROM users WHERE email = $1', [email]);
+            if (existing.rowCount > 0) {
+                return res.status(400).json({ error: `Email already registered: ${email}` });
+            }
+
+            const hashed = await bcrypt.hash(passwordRaw, 10);
+            await client.query(
+                `INSERT INTO users (first_name, last_name, email, password, role, phone_number, address)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+                [first_name, last_name, email, hashed, role, phone_number, address]
+            );
+            inserted += 1;
+        }
+
+        await client.query('COMMIT');
+        return res.status(201).json({ inserted });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        // Postgres unique violation
+        if (error && error.code === '23505') {
+            return res.status(400).json({ error: 'Duplicate value (likely email or phone number).' });
+        }
+        return res.status(500).json({ error: error.message });
+    } finally {
+        client.release();
     }
 };

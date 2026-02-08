@@ -12,9 +12,10 @@ const {
     getMyProfile,
     uploadMyAvatar,
     updateMyProfile,
+    bulkCreateUsers,
 } = require('../controllers/userController'); // ✅ Correct Import
 
-const { authMiddleware } = require('../middleware/authMiddleware');
+const { authMiddleware, managerOnly } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -46,6 +47,10 @@ const avatarUpload = multer({
 router.post('/auth/register', registerUser);
 router.post('/auth/login', loginUser);
 
+// Compatibility aliases used by the frontend
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+
 // ✅ Current signed-in user
 router.get('/me', authMiddleware, getMyProfile);
 router.put('/me', authMiddleware, updateMyProfile);
@@ -55,6 +60,7 @@ router.put('/me/avatar', authMiddleware, avatarUpload.single('avatar'), uploadMy
 router.get('/', getAllUsers);  // 🔥 Change this if it was `router.get('/users', getAllUsers)`
 router.get('/:id', getUserById);
 router.post('/', registerUser);
+router.post('/bulk', authMiddleware, managerOnly, bulkCreateUsers);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
 

@@ -2,6 +2,8 @@
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    brand VARCHAR(255),
+    rating DECIMAL(2,1) DEFAULT 0 CHECK (rating >= 0 AND rating <= 5),
     price DECIMAL(10,2) NOT NULL,
     description VARCHAR(400) NOT NULL,                                  -- Product description (required)
     stock INT DEFAULT 0 CHECK (stock >= 0),                             -- Product stock (default 0, must be >= 0)
