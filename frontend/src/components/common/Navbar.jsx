@@ -64,7 +64,7 @@ function Navbar() {
                                 transition: 'border 0.2s'
                             }}
                         >
-                            Department Store
+                            RetailForge
                         </Link>
                     </div>
 

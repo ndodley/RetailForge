@@ -1,4 +1,4 @@
-# Department Store Web Application
+# RetailForge
 
 A full-stack e-commerce platform for a modern department store, built with the PERN stack (PostgreSQL, Express, React, Node.js). This project features a robust backend API, a beautiful React frontend, and a normalized SQL database. It supports user authentication, shopping cart, Stripe payments, product reviews, and a full admin dashboard.
 
@@ -75,7 +75,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 ## 🏗️ Project Structure
 
 ```
-DepartmentStore1_2025/
+RetailForge/
 ├── backend/
 │   ├── src/
 │   │   ├── controllers/
@@ -107,8 +107,8 @@ DepartmentStore1_2025/
 ### 1. Clone the repository
 
 ```sh
-git clone https://github.com/yourusername/DepartmentStore1_2025.git
-cd DepartmentStore1_2025
+git clone https://github.com/yourusername/RetailForge.git
+cd RetailForge
 ```
 
 ### 2. Database Setup (PostgreSQL)

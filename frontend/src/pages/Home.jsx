@@ -30,7 +30,7 @@ const Home = () => {
                     letterSpacing: 1,
                     textShadow: '0 2px 8px rgba(0,0,0,0.04)'
                 }}>
-                    Welcome to <span style={{ color: 'var(--link)' }}>Department Store</span>
+                    Welcome to <span style={{ color: 'var(--link)' }}>RetailForge</span>
                 </h1>
                 <p style={{
                     fontSize: 22,
@@ -210,7 +210,7 @@ const Home = () => {
                     flexWrap: 'wrap',
                 }}>
                     <div style={{ fontWeight: 900, color: 'var(--text)', letterSpacing: 0.2 }}>
-                        Department Store
+                        RetailForge
                     </div>
 
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -221,7 +221,7 @@ const Home = () => {
                     </div>
 
                     <div style={{ color: 'var(--muted-2)', fontWeight: 700, fontSize: 13 }}>
-                        © {new Date().getFullYear()} Department Store. All rights reserved.
+                        © {new Date().getFullYear()} RetailForge. All rights reserved.
                     </div>
                 </div>
             </footer>
