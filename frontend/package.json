@@ -1,7 +1,7 @@
 {
-  "name": "frontend",
+  "name": "retailforge-frontend",
   "version": "1.0.0",
-  "description": "This is the frontend for the new Department Store web application using PERN stack. This is without OOP logic.",
+  "description": "Frontend for RetailForge (full-stack e-commerce platform).",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

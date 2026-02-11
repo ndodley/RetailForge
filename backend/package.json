@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "retailforge-backend",
   "version": "1.0.0",
-  "description": "This is the backend for the new Department Store web application using PERN stack. This is without OOP logic",
+  "description": "Backend API for RetailForge (full-stack e-commerce platform).",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
