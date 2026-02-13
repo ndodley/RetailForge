@@ -128,6 +128,38 @@ npm install
 npm run dev
 ```
 
+### 3a. (Optional) Kafka Setup (local dev)
+
+Kafka is used for event-driven workflows (example in this repo: publishing an `order.paid` event after checkout).
+
+1. Start Kafka (Docker required):
+
+```sh
+cd RetailForge
+docker compose -f docker-compose.kafka.yml up -d
+```
+
+2. Enable Kafka in the backend env:
+
+- Copy [backend/.env.example](backend/.env.example) to `backend/.env`
+- Set:
+
+```
+KAFKA_ENABLED=true
+KAFKA_BROKERS=localhost:9092
+KAFKA_TOPIC_ORDERS=rf.orders
+```
+
+3. Install the Kafka client library and run the consumer worker:
+
+```sh
+cd backend
+npm install kafkajs
+node src/workers/kafkaWorker.js
+```
+
+When you hit `POST /api/payment/complete-checkout`, the backend publishes an `order.paid` event to the `rf.orders` topic.
+
 ### 4. Frontend Setup
 
 ```sh
@@ -154,6 +186,12 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 SESSION_SECRET=your_session_secret
 STRIPE_SECRET_KEY=your_stripe_secret
+
+# Kafka (optional)
+KAFKA_ENABLED=false
+KAFKA_BROKERS=localhost:9092
+KAFKA_CLIENT_ID=retailforge-backend
+KAFKA_TOPIC_ORDERS=rf.orders
 ```
 
 ### Frontend (`frontend/.env`)
