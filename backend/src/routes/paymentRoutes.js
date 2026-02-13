@@ -3,8 +3,15 @@ const Stripe = require('stripe');
 const router = express.Router();
 const pool = require('../db');
 
+const { kafkaEnabled, kafkaTopics } = require('../kafka/config');
+const { createEventEnvelope } = require('../kafka/eventEnvelope');
+
 // Use your Stripe secret key (keep this safe!)
-const stripe = Stripe('sk_test_51RbrrTQDAYM6vQvxJaJ3AwnXBn86Kq10IZ2byphL9UZndsN6joHyQ0xRbFNQamVU1d1HKtpD5KPtU1J2RS01pWXk00vBW7Yzy7');
+// Prefer STRIPE_SECRET_KEY from env; fallback keeps local dev working.
+const stripe = Stripe(
+  process.env.STRIPE_SECRET_KEY ||
+  'sk_test_51RbrrTQDAYM6vQvxJaJ3AwnXBn86Kq10IZ2byphL9UZndsN6joHyQ0xRbFNQamVU1d1HKtpD5KPtU1J2RS01pWXk00vBW7Yzy7'
+);
 
 // Add models for order creation
 const ShoppingCart = require('../models/ShoppingCart');
@@ -88,6 +95,34 @@ router.post('/complete-checkout', async (req, res) => {
     await ShoppingCart.clearCart(cart.id, client);
 
     await client.query('COMMIT');
+
+    // Kafka event publish (after commit so consumers never see rolled-back orders)
+    if (kafkaEnabled()) {
+      try {
+        const topics = kafkaTopics();
+        // Require dynamically so the API can run even if kafkajs isn't installed,
+        // as long as Kafka is disabled.
+        // eslint-disable-next-line global-require
+        const { publishJson } = require('../kafka/producer');
+
+        const envelope = createEventEnvelope('order.paid', {
+          orderId: order.id,
+          userId: user_id,
+          total,
+          address,
+          itemCount: items.length,
+        });
+
+        await publishJson({
+          topic: topics.orders,
+          key: String(order.id),
+          value: envelope,
+        });
+      } catch (e) {
+        console.warn('[kafka] failed to publish order.paid event:', e?.message || e);
+      }
+    }
+
     res.status(201).json({ order });
   } catch (err) {
     try { await client.query('ROLLBACK'); } catch (e) { /* ignore */ }
