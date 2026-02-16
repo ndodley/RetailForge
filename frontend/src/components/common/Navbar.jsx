@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
+import { backendImageUrl } from "../../utils/images";
 import "./Navbar.css";
 
 function Navbar() {
@@ -166,12 +167,12 @@ function Navbar() {
                                     }}
                                 >
                                     <img
-                                        src={`http://localhost:5000${user.avatar_path || '/images/other_images/dummy_product.jpg'}`}
+                                        src={backendImageUrl(user.avatar_path)}
                                         alt="Avatar"
                                         style={{ width: 26, height: 26, borderRadius: 999, objectFit: 'cover', border: '1px solid rgba(255,152,0,0.45)' }}
                                         onError={(e) => {
                                             e.target.onerror = null;
-                                            e.target.src = 'http://localhost:5000/images/other_images/dummy_product.jpg';
+                                            e.target.src = backendImageUrl('');
                                         }}
                                     />
                                     <span style={{ color: 'var(--text)', fontWeight: 900, fontSize: 14, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

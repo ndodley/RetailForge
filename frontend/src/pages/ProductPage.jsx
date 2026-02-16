@@ -217,8 +217,9 @@ const ProductPage = () => {
                 </div>
                 <div className="product-grid" style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, 240px)',
                     gap: '2rem',
+                    justifyContent: 'center',
                 }}>
                     {filteredProducts.length === 0 ? (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center' }}>No products found.</div>

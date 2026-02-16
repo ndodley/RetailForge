@@ -71,7 +71,7 @@ const updateProduct = async (id, name, brand, rating, price, description, stock,
 // ✅ Delete a product
 const deleteProduct = async (id) => {
     const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
-    return result.rowCount > 0;
+    return result.rows[0] || null;
 };
 
 // ✅ Atomically decrement stock (fails if insufficient)

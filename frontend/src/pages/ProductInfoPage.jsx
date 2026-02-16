@@ -76,6 +76,11 @@ const ProductInfoPage = () => {
             setInCart(true);
             setCartCount(cartCount + 1);
         } catch (err) {
+            const status = err?.response?.status;
+            if (status === 409) {
+                alert('Not enough stock to add this item.');
+                return;
+            }
             alert('Failed to add to cart.');
         }
     };
@@ -392,9 +397,9 @@ const ProductInfoPage = () => {
                                     borderRadius: 999,
                                     border: '1px solid var(--border)',
                                     background: isOutOfStock
-                                        ? 'color-mix(in srgb, var(--danger) 18%, var(--surface-2))'
+                                        ? 'color-mix(in srgb, var(--accent) 18%, var(--surface-2))'
                                         : 'color-mix(in srgb, var(--success) 18%, var(--surface-2))',
-                                    color: isOutOfStock ? 'var(--danger)' : 'var(--success)',
+                                    color: isOutOfStock ? 'var(--accent)' : 'var(--success)',
                                 }}
                             >
                                 {isOutOfStock ? 'Out of stock' : 'In stock'}

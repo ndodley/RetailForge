@@ -1,12 +1,13 @@
 import React from 'react';
 import './admin.css';
 
-const AdminLayout = ({ title, subtitle, actions, children }) => {
+const AdminLayout = ({ pretitle, title, subtitle, actions, children }) => {
     return (
         <main className="admin-page">
             <div className="admin-container">
                 <header className="admin-header">
                     <div>
+                        {pretitle ? <div className="admin-pretitle">{pretitle}</div> : null}
                         <h1 className="admin-title">{title}</h1>
                         {subtitle ? <div className="admin-subtitle">{subtitle}</div> : null}
                     </div>

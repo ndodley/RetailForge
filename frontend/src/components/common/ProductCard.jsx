@@ -11,6 +11,9 @@ const ProductCard = ({ product }) => {
     const [inCart, setInCart] = useState(false);
     const [cartCount, setCartCount] = useState(0);
 
+    const stockCount = Number(product?.stock ?? 0);
+    const isOutOfStock = !Number.isFinite(stockCount) || stockCount <= 0;
+
     const favorite = isFavorited(product.id);
 
     // Fetch cart status/count for this product
@@ -37,6 +40,10 @@ const ProductCard = ({ product }) => {
     }, [user, product.id]);
 
     const handleAddToCart = async () => {
+        if (isOutOfStock) {
+            alert('This product is currently out of stock.');
+            return;
+        }
         if (!user) {
             navigate('/login', { state: { from: { pathname: window.location.pathname, search: window.location.search } }, replace: true });
             return;
@@ -51,7 +58,12 @@ const ProductCard = ({ product }) => {
             }, { withCredentials: true });
             setInCart(true);
             setCartCount(cartCount + 1);
-        } catch {
+        } catch (err) {
+            const status = err?.response?.status;
+            if (status === 409) {
+                alert('Not enough stock to add this item.');
+                return;
+            }
             alert('Failed to add to cart.');
         }
     };
@@ -211,19 +223,34 @@ const ProductCard = ({ product }) => {
                     <div style={{ color: '#16a34a', fontWeight: 900, fontSize: 16 }}>
                         ${Number(product.price).toFixed(2)}
                     </div>
-                    {inCart && (
-                        <div style={{
-                            fontSize: 12,
-                            fontWeight: 800,
-                            color: '#0f172a',
-                            background: 'rgba(34,197,94,0.12)',
-                            border: '1px solid rgba(34,197,94,0.25)',
-                            padding: '4px 8px',
-                            borderRadius: 999,
-                        }}>
-                            In cart: {cartCount}
-                        </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {isOutOfStock && (
+                            <div style={{
+                                fontSize: 12,
+                                fontWeight: 900,
+                                color: '#ff9800',
+                                background: 'rgba(255,152,0,0.14)',
+                                border: '1px solid rgba(255,152,0,0.35)',
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                            }}>
+                                Out of stock
+                            </div>
+                        )}
+                        {inCart && (
+                            <div style={{
+                                fontSize: 12,
+                                fontWeight: 800,
+                                color: '#0f172a',
+                                background: 'rgba(34,197,94,0.12)',
+                                border: '1px solid rgba(34,197,94,0.25)',
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                            }}>
+                                In cart: {cartCount}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -261,34 +288,40 @@ const ProductCard = ({ product }) => {
                     </>
                 ) : (
                     <button
+                        disabled={isOutOfStock}
                         style={{
                             padding: '10px 12px',
-                            background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
-                                color: '#fff',
+                            background: isOutOfStock
+                                ? 'rgba(148,163,184,0.35)'
+                                : 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
+                                color: isOutOfStock ? '#475569' : '#fff',
                             borderRadius: 12,
                                 border: 'none',
                             fontWeight: 900,
                             fontSize: 14,
-                                cursor: 'pointer',
+                                cursor: isOutOfStock ? 'not-allowed' : 'pointer',
                                 width: '100%',
                             marginTop: 10,
-                            boxShadow: '0 10px 22px rgba(34,197,94,0.20)',
+                            boxShadow: isOutOfStock ? 'none' : '0 10px 22px rgba(34,197,94,0.20)',
                             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                             }}
                         onMouseEnter={(e) => {
+                            if (isOutOfStock) return;
                             e.currentTarget.style.transform = 'translateY(-1px)';
                             e.currentTarget.style.boxShadow = '0 14px 30px rgba(34,197,94,0.28)';
                         }}
                         onMouseLeave={(e) => {
+                            if (isOutOfStock) return;
                             e.currentTarget.style.transform = 'none';
                             e.currentTarget.style.boxShadow = '0 10px 22px rgba(34,197,94,0.20)';
                         }}
                         onClick={(e) => {
                             e.stopPropagation();
+                            if (isOutOfStock) return;
                             handleAddToCart();
                         }}
                     >
-                        Add to cart
+                        {isOutOfStock ? 'Out of stock' : 'Add to cart'}
                     </button>
                 )}
             </div>

@@ -61,7 +61,12 @@ const ShoppingCartPage = () => {
             // Refresh cart
             const itemsRes = await axios.get(`http://localhost:5000/api/cart/${cart_id}/items`, { withCredentials: true });
             setCartItems(itemsRes.data);
-        } catch {
+        } catch (err) {
+            const status = err?.response?.status;
+            if (status === 409) {
+                alert('Not enough stock to increase quantity.');
+                return;
+            }
             alert('Failed to update quantity.');
         }
     };
@@ -135,8 +140,31 @@ const ShoppingCartPage = () => {
                         </thead>
                         <tbody>
                             {cartItems.map(item => (
+                                (() => {
+                                    const stockCount = Number(item.stock ?? 0);
+                                    const isOutOfStock = !Number.isFinite(stockCount) || stockCount <= 0;
+                                    const canIncrease = Number.isFinite(stockCount) ? item.quantity < stockCount : true;
+
+                                    return (
                                 <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-                                    <td style={{ padding: '16px 8px', fontWeight: 600, color: 'var(--text)' }}>{item.name}</td>
+                                    <td style={{ padding: '16px 8px', fontWeight: 600, color: 'var(--text)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                                            <span>{item.name}</span>
+                                            {isOutOfStock && (
+                                                <span style={{
+                                                    fontSize: 12,
+                                                    fontWeight: 900,
+                                                    color: '#ff9800',
+                                                    background: 'rgba(255,152,0,0.14)',
+                                                    border: '1px solid rgba(255,152,0,0.35)',
+                                                    padding: '4px 8px',
+                                                    borderRadius: 999,
+                                                }}>
+                                                    Out of stock
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td style={{ padding: '16px 8px' }}>
                                         <a href={`/products/${item.product_id}`} style={{ display: 'inline-block' }}>
                                             <img src={`http://localhost:5000${item.image_path || '/images/other_images/dummy_product.jpg'}`}
@@ -150,13 +178,36 @@ const ShoppingCartPage = () => {
                                     <td style={{ padding: '16px 8px' }}>
                                         <button onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)} style={{ marginRight: 8, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--nav-pill-bg-2)', color: 'var(--text)', fontWeight: 800, fontSize: 16, cursor: 'pointer' }}>-</button>
                                         <span style={{ minWidth: 32, display: 'inline-block', textAlign: 'center', fontWeight: 700, color: 'var(--text)' }}>{item.quantity}</span>
-                                        <button onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)} style={{ marginLeft: 8, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--nav-pill-bg-2)', color: 'var(--text)', fontWeight: 800, fontSize: 16, cursor: 'pointer' }}>+</button>
+                                        <button
+                                            disabled={!canIncrease}
+                                            onClick={() => {
+                                                if (!canIncrease) return;
+                                                handleUpdateQuantity(item.product_id, item.quantity + 1);
+                                            }}
+                                            style={{
+                                                marginLeft: 8,
+                                                padding: '4px 10px',
+                                                borderRadius: 6,
+                                                border: '1px solid var(--border)',
+                                                background: 'var(--nav-pill-bg-2)',
+                                                color: 'var(--text)',
+                                                fontWeight: 800,
+                                                fontSize: 16,
+                                                cursor: canIncrease ? 'pointer' : 'not-allowed',
+                                                opacity: canIncrease ? 1 : 0.55,
+                                            }}
+                                            title={canIncrease ? undefined : 'Not enough stock to increase quantity.'}
+                                        >
+                                            +
+                                        </button>
                                     </td>
                                     <td style={{ padding: '16px 8px', fontWeight: 800, color: 'var(--text)' }}>${(item.price * item.quantity).toFixed(2)}</td>
                                     <td style={{ padding: '16px 8px' }}>
                                         <button onClick={() => handleRemove(item.product_id)} style={{ color: 'var(--surface-2)', background: 'var(--danger)', border: 'none', borderRadius: 6, padding: '6px 16px', fontWeight: 700, cursor: 'pointer', boxShadow: 'var(--shadow-1)' }}>Remove</button>
                                     </td>
                                 </tr>
+                                    );
+                                })()
                             ))}
                         </tbody>
                     </table>

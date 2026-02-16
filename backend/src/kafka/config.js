@@ -30,6 +30,8 @@ function kafkaConfig() {
 function kafkaTopics() {
     return {
         orders: process.env.KAFKA_TOPIC_ORDERS || 'rf.orders',
+        auth: process.env.KAFKA_TOPIC_AUTH || 'rf.auth',
+        inventory: process.env.KAFKA_TOPIC_INVENTORY || 'rf.inventory',
     };
 }
 

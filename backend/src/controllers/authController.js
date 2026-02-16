@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const { kafkaEnabled, kafkaTopics } = require('../kafka/config');
+const { createEventEnvelope } = require('../kafka/eventEnvelope');
 
 function looksLikeBcryptHash(value) {
     return typeof value === 'string' && /^\$2[aby]\$\d{2}\$/.test(value);
@@ -9,9 +11,39 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findUserByEmail(email);
 
+    const ip = req.headers['x-forwarded-for']
+        ? String(req.headers['x-forwarded-for']).split(',')[0].trim()
+        : req.ip;
+
+    const publishLoginFailed = async (userIdOrNull) => {
+        if (!kafkaEnabled()) return;
+        try {
+            const topics = kafkaTopics();
+            // eslint-disable-next-line global-require
+            const { publishJson } = require('../kafka/producer');
+
+            const envelope = createEventEnvelope('auth.login_failed', {
+                userId: userIdOrNull ?? null,
+                email: String(email || '').trim() || null,
+                reason: 'invalid_credentials',
+                ip: ip || null,
+                userAgent: req.headers['user-agent'] || null,
+            });
+
+            await publishJson({
+                topic: topics.auth,
+                key: String(email || userIdOrNull || 'unknown'),
+                value: envelope,
+            });
+        } catch (e) {
+            console.warn('[kafka] failed to publish auth.login_failed event:', e?.message || e);
+        }
+    };
+
     // Treat invalid credentials as a normal UI state (no noisy 401 in browser console).
     // The frontend should show a friendly message when user is null.
     if (!user) {
+        await publishLoginFailed(null);
         return res.json({ user: null, error: 'Invalid credentials' });
     }
 
@@ -32,6 +64,7 @@ exports.login = async (req, res) => {
     }
 
     if (!ok) {
+        await publishLoginFailed(user.id);
         return res.json({ user: null, error: 'Invalid credentials' });
     }
 
@@ -43,6 +76,31 @@ exports.login = async (req, res) => {
     // Never return password to the client
     // eslint-disable-next-line no-unused-vars
     const { password: _password, ...safeUser } = user;
+
+    // Kafka event publish (best-effort)
+    if (kafkaEnabled()) {
+        try {
+            const topics = kafkaTopics();
+            // eslint-disable-next-line global-require
+            const { publishJson } = require('../kafka/producer');
+
+            const envelope = createEventEnvelope('user.logged_in', {
+                userId: safeUser.id,
+                email: safeUser.email,
+                role: safeUser.role,
+                ip: ip || null,
+                userAgent: req.headers['user-agent'] || null,
+            });
+
+            await publishJson({
+                topic: topics.auth,
+                key: String(safeUser.id),
+                value: envelope,
+            });
+        } catch (e) {
+            console.warn('[kafka] failed to publish user.logged_in event:', e?.message || e);
+        }
+    }
 
     res.json({ message: 'Login successful', user: safeUser });
 };

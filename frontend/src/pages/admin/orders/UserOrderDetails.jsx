@@ -20,6 +20,23 @@ const UserOrderDetails = () => {
 
 	const currencyFormatter = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }), []);
 
+	const items = useMemo(() => (Array.isArray(order?.items) ? order.items : []), [order]);
+	const exportRows = useMemo(() => {
+		if (!order) return [];
+
+		const summary = {
+			order_id: order.id,
+			status: order.status,
+			total: order.total,
+			created_at: order.created_at,
+			user_email: order.user_email,
+			address: order.address,
+		};
+
+		if (items.length === 0) return [summary];
+		return items.map((item) => ({ ...summary, ...item }));
+	}, [items, order]);
+
 	useEffect(() => {
 		const fetchOrder = async () => {
 			if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
@@ -102,30 +119,17 @@ const UserOrderDetails = () => {
 		);
 	}
 
-	const items = Array.isArray(order.items) ? order.items : [];
-	const exportRows = useMemo(() => {
-		const summary = {
-			order_id: order.id,
-			status: order.status,
-			total: order.total,
-			created_at: order.created_at,
-			user_email: order.user_email,
-			address: order.address,
-		};
-
-		if (items.length === 0) return [summary];
-		return items.map((item) => ({ ...summary, ...item }));
-	}, [items, order.address, order.created_at, order.id, order.status, order.total, order.user_email]);
-
 	return (
 		<AdminLayout
+			pretitle={(
+				<Link to="/admin/orders" className="admin-link-btn admin-btn admin-btn--sm">
+					&larr; Back to Orders
+				</Link>
+			)}
 			title={`Order #${order.id}`}
 			subtitle={order.user_email ? `Customer: ${order.user_email}` : 'Order details'}
 			actions={(
 				<>
-					<Link to="/admin/orders" className="admin-link-btn admin-btn">
-						Back to Orders
-					</Link>
 					<button
 						type="button"
 						className="admin-btn"
