@@ -91,11 +91,6 @@ const OrderConfirmation = () => {
                         gap: 12,
                     }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Order ID:</div>
-                            <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{order.id}</div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
                             <div style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 800, whiteSpace: 'nowrap' }}>Total:</div>
                             <div style={{ fontSize: 16, fontWeight: 900, color: 'var(--success)', whiteSpace: 'nowrap' }}>${order.total}</div>
                         </div>

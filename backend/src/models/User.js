@@ -1,5 +1,7 @@
 const pool = require('../db');
 
+const DEFAULT_AVATAR_PATH = '/images/other_images/default_avatar.jpg';
+
 const User = {
 
     // Authentication
@@ -14,7 +16,12 @@ const User = {
 
     // Authentication
     async findUserByEmail(email) {
-        const result = await pool.query(`SELECT * FROM users WHERE email = $1`, [email]);
+        const result = await pool.query(
+            `SELECT *, COALESCE(NULLIF(avatar_path, ''), '${DEFAULT_AVATAR_PATH}') AS avatar_path
+             FROM users
+             WHERE email = $1`,
+            [email]
+        );
         return result.rows[0];
     },
 
@@ -22,7 +29,8 @@ const User = {
     // CRUD Operations
     async getAllUsers() {
         const result = await pool.query(`
-            SELECT id, first_name, last_name, email, role, phone_number, address, avatar_path
+            SELECT id, first_name, last_name, email, role, phone_number, address,
+                   COALESCE(NULLIF(avatar_path, ''), '${DEFAULT_AVATAR_PATH}') AS avatar_path
             FROM users
         `);
         return result.rows;
@@ -30,7 +38,8 @@ const User = {
 
     async getUserById(id) {
         const result = await pool.query(`
-            SELECT id, first_name, last_name, email, role, phone_number, address, avatar_path
+            SELECT id, first_name, last_name, email, role, phone_number, address,
+                   COALESCE(NULLIF(avatar_path, ''), '${DEFAULT_AVATAR_PATH}') AS avatar_path
             FROM users
             WHERE id = $1
         `, [id]);

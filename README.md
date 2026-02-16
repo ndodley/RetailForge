@@ -19,6 +19,7 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **Dependent Filters**: Category options depend on selected Department
 - **Product Details (Modernized)**: Improved dark-mode visuals, fixed-size product image frame (shows full image), availability status based on stock, and description formatting that preserves paragraphs/newlines
 - **Shopping Cart**: Add, update, and remove items; persistent across sessions
+- **Stock-Aware Cart**: Cart add/update prevents exceeding available stock and surfaces friendly errors when stock is insufficient
 - **Checkout**: Secure Stripe payment integration
 - **Stock-Safe Checkout**: Product stock is decremented atomically during checkout; checkout fails gracefully if stock is insufficient
 - **Order Confirmation**: Receipt page after successful purchase
@@ -130,7 +131,7 @@ npm run dev
 
 ### 3a. (Optional) Kafka Setup (local dev)
 
-Kafka is used for event-driven workflows (example in this repo: publishing an `order.paid` event after checkout).
+Kafka is used for event-driven workflows. In this repo it publishes events for **orders**, **auth**, and **inventory**.
 
 1. Start Kafka (Docker required):
 
@@ -148,6 +149,11 @@ docker compose -f docker-compose.kafka.yml up -d
 KAFKA_ENABLED=true
 KAFKA_BROKERS=localhost:9092
 KAFKA_TOPIC_ORDERS=rf.orders
+KAFKA_TOPIC_AUTH=rf.auth
+KAFKA_TOPIC_INVENTORY=rf.inventory
+
+# Inventory alerts (optional)
+LOW_STOCK_THRESHOLD=5
 ```
 
 3. Install the Kafka client library and run the consumer worker:
@@ -158,7 +164,15 @@ npm install kafkajs
 node src/workers/kafkaWorker.js
 ```
 
-When you hit `POST /api/payment/complete-checkout`, the backend publishes an `order.paid` event to the `rf.orders` topic.
+The worker subscribes to the configured topics and logs events as they arrive.
+
+**Events published (best-effort):**
+
+- Orders topic: `order.created`, `order.paid`, `order.status_updated`
+- Auth topic: `user.logged_in`, `auth.login_failed`
+- Inventory topic: `inventory.low_stock`, `inventory.out_of_stock`
+
+`LOW_STOCK_THRESHOLD` controls when `inventory.low_stock` is emitted (defaults to `5`).
 
 ### 4. Frontend Setup
 
@@ -192,6 +206,11 @@ KAFKA_ENABLED=false
 KAFKA_BROKERS=localhost:9092
 KAFKA_CLIENT_ID=retailforge-backend
 KAFKA_TOPIC_ORDERS=rf.orders
+KAFKA_TOPIC_AUTH=rf.auth
+KAFKA_TOPIC_INVENTORY=rf.inventory
+
+# Inventory alerts
+LOW_STOCK_THRESHOLD=5
 ```
 
 ### Frontend (`frontend/.env`)
@@ -263,7 +282,7 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 
 **Categories (`categories.csv`) columns:**
 
-- `name`, `description`, `department_id`
+- `name`, `description`, `department_name`
 
 **Users (`users.csv`) columns:**
 

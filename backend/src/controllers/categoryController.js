@@ -60,10 +60,30 @@ const handleBulkCreateCategories = async (req, res) => {
         for (const row of rows) {
             const name = String(row?.name ?? '').trim();
             const description = String(row?.description ?? '').trim();
-            const department_id = Number(String(row?.department_id ?? '').trim());
+            const departmentName = String(row?.department_name ?? '').trim();
+            const departmentIdRaw = String(row?.department_id ?? '').trim(); // backward compatible
+            const department_id_from_csv = departmentIdRaw === '' ? null : Number(departmentIdRaw);
+
+            let department_id = null;
+            if (departmentName) {
+                const deptRes = await client.query(
+                    'SELECT id FROM departments WHERE LOWER(name) = LOWER($1) LIMIT 2',
+                    [departmentName]
+                );
+
+                if (deptRes.rowCount === 0) {
+                    return res.status(400).json({ error: `No department found for department_name="${departmentName}".` });
+                }
+                if (deptRes.rowCount > 1) {
+                    return res.status(400).json({ error: `Multiple departments found for department_name="${departmentName}".` });
+                }
+                department_id = deptRes.rows[0].id;
+            } else if (Number.isFinite(department_id_from_csv)) {
+                department_id = department_id_from_csv;
+            }
 
             if (!name || !description || !Number.isFinite(department_id)) {
-                return res.status(400).json({ error: 'Each category row requires name, description, and department_id.' });
+                return res.status(400).json({ error: 'Each category row requires name, description, and department_name.' });
             }
 
             await client.query(

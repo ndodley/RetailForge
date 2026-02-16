@@ -13,12 +13,12 @@ export const categoryCsv = {
     columns: [
         { key: 'name', label: 'name' },
         { key: 'description', label: 'description' },
-        { key: 'department_id', label: 'department_id' },
+        { key: 'department_name', label: 'department_name' },
     ],
     toRow: (c) => ({
         name: c?.name ?? '',
         description: c?.description ?? '',
-        department_id: c?.department_id ?? '',
+        department_name: c?.department_name ?? '',
     }),
 };
 

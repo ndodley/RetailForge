@@ -108,7 +108,7 @@ const UpsertCategory = () => {
                 <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
                     <BulkUploadSection
                         title="Bulk Upload"
-                        description="Upload a categories CSV. department_id is required for each row."
+                        description="Upload a categories CSV. department_name is required for each row."
                         columns={categoryCsv.columns}
                         filename={categoryCsv.filename}
                         uploadUrl="http://localhost:5000/api/categories/bulk"

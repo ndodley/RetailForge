@@ -43,6 +43,9 @@ router.post('/complete-checkout', async (req, res) => {
     return res.status(400).json({ error: 'user_id and address are required' });
   }
 
+  const lowStockThresholdRaw = Number(process.env.LOW_STOCK_THRESHOLD);
+  const lowStockThreshold = Number.isFinite(lowStockThresholdRaw) ? lowStockThresholdRaw : 5;
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -62,10 +65,27 @@ router.post('/complete-checkout', async (req, res) => {
     }
 
     // 3. Decrement stock first (atomic per product)
+    // Option 1 behavior: when stock hits 0, emit only out_of_stock (skip low_stock).
+    const lowStockAlerts = [];
+    const outOfStockAlerts = [];
     for (const item of items) {
       const qty = Number(item.quantity);
       try {
-        await Product.decrementStock(item.product_id, qty, client);
+        const updated = await Product.decrementStock(item.product_id, qty, client);
+        const newStock = Number(updated.stock);
+
+        if (newStock === 0) {
+          outOfStockAlerts.push({
+            productId: updated.id,
+            productName: item.name || item.product_name || null,
+          });
+        } else if (newStock <= lowStockThreshold) {
+          lowStockAlerts.push({
+            productId: updated.id,
+            productName: item.name || item.product_name || null,
+            newStock,
+          });
+        }
       } catch (err) {
         if (err && err.code === 'INSUFFICIENT_STOCK') {
           err.product_name = item.name;
@@ -105,6 +125,22 @@ router.post('/complete-checkout', async (req, res) => {
         // eslint-disable-next-line global-require
         const { publishJson } = require('../kafka/producer');
 
+        const createdEnvelope = createEventEnvelope('order.created', {
+          orderId: order.id,
+          userId: user_id,
+          total,
+          address,
+          status: order.status,
+          itemCount: items.length,
+          source: 'checkout',
+        });
+
+        await publishJson({
+          topic: topics.orders,
+          key: String(order.id),
+          value: createdEnvelope,
+        });
+
         const envelope = createEventEnvelope('order.paid', {
           orderId: order.id,
           userId: user_id,
@@ -118,6 +154,41 @@ router.post('/complete-checkout', async (req, res) => {
           key: String(order.id),
           value: envelope,
         });
+
+        // Inventory low-stock alerts (fan-out to inventory consumers)
+        for (const alert of lowStockAlerts) {
+          const inventoryEnvelope = createEventEnvelope('inventory.low_stock', {
+            orderId: order.id,
+            userId: user_id,
+            productId: alert.productId,
+            productName: alert.productName,
+            newStock: alert.newStock,
+            threshold: lowStockThreshold,
+          });
+
+          await publishJson({
+            topic: topics.inventory,
+            key: String(alert.productId),
+            value: inventoryEnvelope,
+          });
+        }
+
+        // Inventory out-of-stock alerts
+        for (const alert of outOfStockAlerts) {
+          const inventoryEnvelope = createEventEnvelope('inventory.out_of_stock', {
+            orderId: order.id,
+            userId: user_id,
+            productId: alert.productId,
+            productName: alert.productName,
+            newStock: 0,
+          });
+
+          await publishJson({
+            topic: topics.inventory,
+            key: String(alert.productId),
+            value: inventoryEnvelope,
+          });
+        }
       } catch (e) {
         console.warn('[kafka] failed to publish order.paid event:', e?.message || e);
       }

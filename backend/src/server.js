@@ -31,7 +31,7 @@ if (!fs.existsSync(productImagesDir)) {
 const storage = multer.diskStorage({
     destination: productImagesDir,
     filename: (req, file, cb) => {
-        cb(null, `product_${Date.now()}_${file.originalname}`);
+        cb(null, `product_${file.originalname}`);
     }
 });
 const upload = multer({ storage });

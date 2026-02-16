@@ -13,6 +13,27 @@ const pool = require('../db');
 
 const DEFAULT_IMAGE_PATH = '/images/other_images/dummy_product.jpg';
 
+const PRODUCT_IMAGE_PREFIX = '/images/product_images/';
+const productImagesDir = path.join(__dirname, '../../images/product_images');
+
+function getLocalProductImageFilePath(imagePath) {
+    if (!imagePath || typeof imagePath !== 'string') return null;
+    if (imagePath === DEFAULT_IMAGE_PATH) return null;
+    if (!imagePath.startsWith(PRODUCT_IMAGE_PREFIX)) return null;
+    const filename = path.basename(imagePath);
+    if (!filename) return null;
+    return path.join(productImagesDir, filename);
+}
+
+function deleteFileIfExists(filePath) {
+    if (!filePath) return;
+    try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } catch (err) {
+        console.warn('⚠️ Failed to delete file:', filePath, err?.message || err);
+    }
+}
+
 const handleGetAllProducts = async (req, res) => {
     try {
         const products = await getAllProducts();
@@ -140,13 +161,10 @@ const handleUpdateProduct = async (req, res) => {
         }
 
         if (existingProduct) {
-            const oldImagePath = path.join(__dirname, '../..', existingProduct.image_path);
-            console.log('oldImagePath: ', oldImagePath);
-            console.log('newImagePath: ', newImagePath)
-
+            const oldImageFilePath = getLocalProductImageFilePath(existingProduct.image_path);
             // ✅ Delete the old image file if a new image is uploaded
-            if (newImagePath && fs.existsSync(oldImagePath) && oldImagePath !== path.join(__dirname, '../..', DEFAULT_IMAGE_PATH)) {
-                fs.unlinkSync(oldImagePath);
+            if (newImagePath && oldImageFilePath) {
+                deleteFileIfExists(oldImageFilePath);
             }
         }
 
@@ -178,8 +196,14 @@ const handleUpdateProduct = async (req, res) => {
 
 const handleDeleteProduct = async (req, res) => {
     try {
-        const success = await deleteProduct(req.params.id);
-        res.json({ message: success ? 'Deleted successfully' : 'Not found' });
+        const deleted = await deleteProduct(req.params.id);
+        if (!deleted) {
+            return res.json({ message: 'Not found' });
+        }
+
+        const imageFilePath = getLocalProductImageFilePath(deleted.image_path);
+        deleteFileIfExists(imageFilePath);
+        return res.json({ message: 'Deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

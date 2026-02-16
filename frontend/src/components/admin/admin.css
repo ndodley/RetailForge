@@ -26,6 +26,10 @@
     letter-spacing: 0.2px;
 }
 
+.admin-pretitle {
+    margin-bottom: 10px;
+}
+
 .admin-subtitle {
     margin-top: 6px;
     color: var(--muted);
