@@ -56,6 +56,9 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
+        // Set session user_id for session-based auth (like authController)
+        req.session.user_id = user.id;
+
         // Never return password
         // eslint-disable-next-line no-unused-vars
         const { password: _pw, ...safeUser } = user;

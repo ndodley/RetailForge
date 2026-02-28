@@ -5,7 +5,11 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "load:browse": "artillery run artillery/scenarios/http_browse.yml",
+    "load:login-failed": "artillery run artillery/scenarios/http_login_failed.yml",
+    "load:checkout": "artillery run artillery/scenarios/http_login_cart_checkout.yml",
+    "load:kafka": "artillery run artillery/kafka/kafka_smoke.yml"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +29,7 @@
     "stripe": "^18.2.1"
   },
   "devDependencies": {
+    "artillery": "^2.0.30",
     "nodemon": "^3.1.10"
   }
 }

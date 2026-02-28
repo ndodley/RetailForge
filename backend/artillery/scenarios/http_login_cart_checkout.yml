@@ -1,0 +1,49 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    # Keep this modest at first; checkout decrements inventory.
+    - duration: 60
+      arrivalRate: 2
+  processor: "../processors/common.js"
+  payload:
+    path: "../data/users.example.csv"
+    fields:
+      - "email"
+      - "password"
+      - "address"
+    skipHeader: true
+    delimiter: ","
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+scenarios:
+  - name: "Login -> cart -> add item -> checkout (publishes Kafka events)"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          afterResponse: "setUserIdFromLogin"
+      - get:
+          url: "/api/cart/user/{{ userId }}"
+          afterResponse: "setCartId"
+      - get:
+          url: "/api/products"
+          afterResponse: "setProductIdFromProducts"
+      - function: "setQuantityStep"
+      - post:
+          url: "/api/cart/item"
+          json:
+            cart_id: "{{ cartId }}"
+            product_id: "{{ productId }}"
+            quantity: "{{ quantity }}"
+          afterResponse: "markAddItemResult"
+      - post:
+          url: "/api/payment/complete-checkout"
+          ifTrue: "shouldCheckout"
+          json:
+            user_id: "{{ userId }}"
+            address: "{{ address }}"
