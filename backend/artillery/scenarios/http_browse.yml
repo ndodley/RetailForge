@@ -1,0 +1,18 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+  processor: "../processors/common.js"
+  defaults:
+    headers:
+      Accept: "application/json"
+
+scenarios:
+  - name: "Browse products"
+    flow:
+      - get:
+          url: "/api/products"
+      - think: 1
+      - get:
+          url: "/api/products/1"

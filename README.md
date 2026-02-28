@@ -174,6 +174,90 @@ The worker subscribes to the configured topics and logs events as they arrive.
 
 `LOW_STOCK_THRESHOLD` controls when `inventory.low_stock` is emitted (defaults to `5`).
 
+### 3b. Load Testing (Artillery)
+
+This repo includes Artillery scenarios to load test the backend API with **many concurrent sessions**. The most important scenario is the checkout flow, which intentionally creates real contention for stock so you can verify:
+
+- Session-based login works under concurrency
+- Carts and checkout behave correctly with many requests in-flight
+- Inventory is never oversold (stock decrements atomically; failures return `409`)
+- Kafka events are emitted for auth/order/inventory (when Kafka is enabled)
+
+#### Prerequisites
+
+1. Backend API running:
+
+```sh
+cd backend
+npm run dev
+```
+
+2. Database migrated and seeded with products that have non-zero `stock`.
+
+3. (Optional, for event verification) Kafka + worker running:
+
+```sh
+docker compose -f docker-compose.kafka.yml up -d
+cd backend
+node src/workers/kafkaWorker.js
+```
+
+#### Scenarios & scripts
+
+Run these from the `backend/` folder:
+
+```sh
+npm run load:browse
+npm run load:login-failed
+npm run load:checkout
+```
+
+- `load:browse`: basic GET traffic against products
+- `load:login-failed`: intentionally invalid logins (useful to confirm `auth.login_failed` Kafka events)
+- `load:checkout`: end-to-end checkout load test
+
+#### Checkout test: what it simulates
+
+Each virtual user (VU) runs a full flow:
+
+1. `POST /api/auth/login` using credentials from `backend/artillery/data/users.example.csv`
+2. `GET /api/cart/user/:userId` (get-or-create cart)
+3. `GET /api/products` (select a product)
+4. `POST /api/cart/item` (attempt to add quantity=1)
+5. `POST /api/payment/complete-checkout` (only attempted when the add-to-cart step succeeds)
+
+Because many VUs overlap in time, this creates real concurrency where multiple shoppers race to buy the same inventory.
+
+#### How many users are “at the same time”?
+
+In the default checkout scenario, Artillery uses an **arrival rate** (new users started per second) and a **duration**. Roughly:
+
+$$\text{VUs created} \approx \text{arrivalRate} \times \text{duration}$$
+
+For example, `arrivalRate: 2` for `duration: 60` seconds creates about `120` VUs.
+
+Note: if your CSV contains only a few accounts, Artillery will reuse them across VUs. That still produces true concurrent API sessions, but it is not the same as 120 unique customer identities. If you want “one account per VU”, expand the CSV.
+
+#### Interpreting results (this is the key)
+
+In this test you should expect a mixture of success and contention:
+
+- `201 Created` from `/api/payment/complete-checkout` means an order was created successfully.
+- `409 Conflict` means **insufficient stock**. This is expected under load and is a good sign: it indicates your inventory rules are preventing overselling.
+- Occasional `400` responses usually mean a business-rule rejection (e.g., missing fields or cart empty). With the current scenario, checkout is gated on add-to-cart success, so persistent `400`s are not expected.
+
+The backend enforces stock correctness by using an atomic stock decrement in the database and wrapping checkout in a transaction; under concurrency this produces `409` responses rather than negative stock.
+
+#### Kafka: what you should see
+
+When Kafka is enabled and `node src/workers/kafkaWorker.js` is running, a successful checkout run should produce:
+
+- Auth topic: `user.logged_in`
+- Orders topic: `order.created`, `order.paid`
+- Inventory topic (when thresholds are crossed): `inventory.low_stock`, `inventory.out_of_stock`
+
+This gives you an end-to-end validation: HTTP requests create orders, inventory updates, and Kafka events observable by a worker.
+
 ### 4. Frontend Setup
 
 ```sh
