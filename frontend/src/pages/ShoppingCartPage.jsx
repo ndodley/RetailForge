@@ -94,11 +94,10 @@ const ShoppingCartPage = () => {
 
     return (
         <div style={{
-            minHeight: '100vh',
             background: 'var(--app-bg)',
-            padding: 0,
+            padding: '2rem 1rem',
         }}>
-            <div style={{ maxWidth: 900, margin: '2rem auto', padding: '2rem 1rem', background: 'var(--surface-2)', borderRadius: 16, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '2rem 1rem', background: 'var(--surface-2)', borderRadius: 16, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
                     <h2 style={{ textAlign: 'center', fontWeight: 700, letterSpacing: 1, margin: 0, color: 'var(--text)' }}>🛒 Shopping Cart</h2>
                     <button

@@ -40,28 +40,32 @@ function Navbar() {
         <nav
             className="navbar"
             style={{
+                borderBottom: '1px solid var(--border)',
                 background: 'var(--nav-bg)',
-                borderRadius: 18,
-                margin: '18px auto 32px auto',
-                maxWidth: 1200,
-                padding: '0.5rem 2.5rem',
-                position: 'relative',
-                zIndex: 10,
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--nav-shadow)'
+                padding: '1.5rem 1rem',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000
             }}
         >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, width: '100%' }}>
+            <div style={{
+                maxWidth: 1200,
+                margin: '0 auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 18,
+                width: '100%'
+            }}>
                 {/* Left: Brand + main links (Admin, Products) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', minWidth: 0 }}>
-                    <div style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: 'var(--accent)', marginRight: 32 }}>
+                    <div style={{ fontWeight: 900, fontSize: 'clamp(24px, 2.4vw, 32px)', letterSpacing: 0.3, color: 'var(--accent)', marginRight: 18, lineHeight: 1 }}>
                         <Link
                             to="/"
                             style={{
                                 textDecoration: 'none',
                                 color: 'var(--accent)',
-                                borderBottom: location.pathname === '/' ? '2.5px solid var(--accent)' : '2.5px solid transparent',
-                                paddingBottom: 2,
+                                borderBottom: location.pathname === '/' ? '3px solid var(--accent)' : '3px solid transparent',
+                                paddingBottom: 3,
                                 transition: 'border 0.2s'
                             }}
                         >
@@ -107,12 +111,66 @@ function Navbar() {
                                     listStyle: 'none'
                                 }}
                             >
-                                <li><Link to="/admin/departments" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Departments</Link></li>
-                                <li><Link to="/admin/categories" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Categories</Link></li>
-                                <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Products</Link></li>
-                                <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Users</Link></li>
-                                <li><Link to="/admin/reviews" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Reviews</Link></li>
-                                <li><Link to="/admin/orders" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}>Orders</Link></li>
+                                <li>
+                                    <Link
+                                        to="/admin/departments"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/departments' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Departments
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/categories"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/categories' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Categories
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/products"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/products' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Products
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/users"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/users' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Users
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/reviews"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/reviews' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Reviews
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/orders"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/orders' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Orders
+                                    </Link>
+                                </li>
                             </ul>
                         </div>
                     )}

@@ -36,11 +36,13 @@ const RegisterPage = () => {
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100%',
             background: 'var(--app-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            padding: '3rem 1rem',
+            boxSizing: 'border-box',
         }}>
             <form onSubmit={handleSubmit} style={{
                 background: 'var(--surface-2)',
@@ -48,8 +50,9 @@ const RegisterPage = () => {
                 borderRadius: 18,
                 boxShadow: '0 6px 32px rgba(0,123,255,0.10)',
                 border: '1px solid var(--border)',
-                minWidth: 340,
-                maxWidth: 420,
+                minWidth: 420,
+                maxWidth: 560,
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -57,61 +60,62 @@ const RegisterPage = () => {
             }}>
                 <div style={{ fontSize: 44, marginBottom: 8, color: '#28a745' }}>📝</div>
                 <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 8, color: 'var(--text)', letterSpacing: 1 }}>Create Account</h2>
-                <input type="text" name="first_name" placeholder="First Name" onChange={handleChange} required style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: 8,
-                    border: '1.5px solid var(--border)',
-                    fontSize: 16,
-                    marginBottom: 8,
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                    background: 'var(--surface-2)',
-                    color: 'var(--text)'
-                }} />
-                <input type="text" name="last_name" placeholder="Last Name" onChange={handleChange} required style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: 8,
-                    border: '1.5px solid var(--border)',
-                    fontSize: 16,
-                    marginBottom: 8,
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                    background: 'var(--surface-2)',
-                    color: 'var(--text)'
-                }} />
-                <input type="email" name="email" placeholder="Email" onChange={handleChange} required style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: 8,
-                    border: '1.5px solid var(--border)',
-                    fontSize: 16,
-                    marginBottom: 8,
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                    background: 'var(--surface-2)',
-                    color: 'var(--text)'
-                }} />
+                <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <input type="text" name="first_name" placeholder="First Name" onChange={handleChange} required style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 8,
+                        border: '1.5px solid var(--border)',
+                        fontSize: 16,
+                        outline: 'none',
+                        transition: 'border 0.2s',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text)'
+                    }} />
+                    <input type="text" name="last_name" placeholder="Last Name" onChange={handleChange} required style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 8,
+                        border: '1.5px solid var(--border)',
+                        fontSize: 16,
+                        outline: 'none',
+                        transition: 'border 0.2s',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text)'
+                    }} />
+                </div>
+
+                <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <input type="email" name="email" placeholder="Email" onChange={handleChange} required style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 8,
+                        border: '1.5px solid var(--border)',
+                        fontSize: 16,
+                        outline: 'none',
+                        transition: 'border 0.2s',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text)'
+                    }} />
+                    <input type="text" name="phone_number" placeholder="Phone Number" onChange={handleChange} required style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: 8,
+                        border: '1.5px solid var(--border)',
+                        fontSize: 16,
+                        outline: 'none',
+                        transition: 'border 0.2s',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text)'
+                    }} />
+                </div>
+
                 <input type="password" name="password" placeholder="Password" onChange={handleChange} required style={{
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: 8,
                     border: '1.5px solid var(--border)',
                     fontSize: 16,
-                    marginBottom: 8,
-                    outline: 'none',
-                    transition: 'border 0.2s',
-                    background: 'var(--surface-2)',
-                    color: 'var(--text)'
-                }} />
-                <input type="text" name="phone_number" placeholder="Phone Number" onChange={handleChange} required style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    borderRadius: 8,
-                    border: '1.5px solid var(--border)',
-                    fontSize: 16,
-                    marginBottom: 8,
                     outline: 'none',
                     transition: 'border 0.2s',
                     background: 'var(--surface-2)',
@@ -123,7 +127,6 @@ const RegisterPage = () => {
                     borderRadius: 8,
                     border: '1.5px solid var(--border)',
                     fontSize: 16,
-                    marginBottom: 8,
                     outline: 'none',
                     transition: 'border 0.2s',
                     resize: 'vertical',

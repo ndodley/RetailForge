@@ -19,9 +19,12 @@ const ProductPage = () => {
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [page, setPage] = useState(1);
     const { user } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+
+    const pageSize = 8;
 
     useEffect(() => {
         Promise.all([
@@ -160,6 +163,14 @@ const ProductPage = () => {
         setFilteredProducts(filtered);
     }, [search, selectedCategory, selectedDepartment, products, categories, sortBy, sortOrder, stockFilter]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [filteredProducts.length]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedProducts = filteredProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     const handleAddToCart = async (product) => {
         if (!user) {
             // Redirect to login and preserve current location (use pathname only)
@@ -215,16 +226,74 @@ const ProductPage = () => {
                         sections={filterSections}
                     />
                 </div>
+
+                {filteredProducts.length > 0 && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                        marginBottom: 16,
+                    }}>
+                        <div style={{ color: 'var(--muted-2)', fontWeight: 800 }}>
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredProducts.length)} of {filteredProducts.length}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <button
+                                type="button"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                style={{
+                                    background: 'var(--surface-3)',
+                                    color: 'var(--text)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 12,
+                                    padding: '10px 12px',
+                                    fontWeight: 900,
+                                    cursor: safePage <= 1 ? 'not-allowed' : 'pointer',
+                                    opacity: safePage <= 1 ? 0.6 : 1,
+                                }}
+                            >
+                                Prev
+                            </button>
+
+                            <div style={{ color: 'var(--muted-2)', fontWeight: 900 }}>
+                                Page {safePage} / {totalPages}
+                            </div>
+
+                            <button
+                                type="button"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                style={{
+                                    background: 'var(--surface-3)',
+                                    color: 'var(--text)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 12,
+                                    padding: '10px 12px',
+                                    fontWeight: 900,
+                                    cursor: safePage >= totalPages ? 'not-allowed' : 'pointer',
+                                    opacity: safePage >= totalPages ? 0.6 : 1,
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <div className="product-grid" style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, 240px)',
-                    gap: '2rem',
-                    justifyContent: 'center',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                    gap: 18,
+                    alignItems: 'stretch',
                 }}>
                     {filteredProducts.length === 0 ? (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center' }}>No products found.</div>
                     ) : (
-                        filteredProducts.map(product => (
+                        pagedProducts.map(product => (
                             <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
                         ))
                     )}

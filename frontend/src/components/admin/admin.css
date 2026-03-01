@@ -1,5 +1,4 @@
 .admin-page {
-    min-height: 100vh;
     background: var(--app-bg);
     color: var(--text);
 }
@@ -48,6 +47,87 @@
     border-radius: 16px;
     box-shadow: var(--shadow-1);
     padding: 16px;
+}
+
+/* ------------------------------
+   Admin list grids + pagination
+--------------------------------*/
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 10px 0 14px;
+}
+
+.admin-pagination-meta {
+    color: var(--muted);
+    font-weight: 800;
+}
+
+.admin-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+
+.admin-grid-card {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-1);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.admin-grid-card--clickable {
+    cursor: pointer;
+    transition: filter 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.admin-grid-card--clickable:hover,
+.admin-grid-card--clickable:focus-visible {
+    background: var(--nav-pill-bg);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    outline: none;
+}
+
+.admin-grid-card img {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+}
+
+.admin-grid-title {
+    font-weight: 900;
+    letter-spacing: 0.1px;
+}
+
+.admin-grid-meta {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.admin-grid-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: auto;
 }
 
 .admin-toolbar {

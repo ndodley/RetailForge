@@ -18,6 +18,11 @@ const CheckoutPage = () => {
     const [localCartItems, setLocalCartItems] = useState(cartItems || []);
     const { user } = useAuth();
 
+    const safeCartItems = Array.isArray(localCartItems) ? localCartItems : [];
+    const safeCartTotal = typeof cartTotal === 'number'
+        ? cartTotal
+        : safeCartItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
+
     const [stripeTheme, setStripeTheme] = useState({
         text: '#000000',
         muted: '#6b7280',
@@ -106,20 +111,73 @@ const CheckoutPage = () => {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
-            <div style={{ maxWidth: 500, margin: '3rem auto', padding: '2rem 1.5rem', background: 'var(--surface-2)', borderRadius: 16, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
-                <h2 style={{ textAlign: 'center', fontWeight: 700, marginBottom: 32 }}>Checkout</h2>
+        <div style={{ background: 'var(--app-bg)', padding: '2rem 1rem' }}>
+            <div style={{ maxWidth: 720, margin: '0 auto', padding: '2rem 1.5rem', background: 'var(--surface-2)', borderRadius: 16, boxShadow: 'var(--shadow-1)', border: '1px solid var(--border)' }}>
+                <h2 style={{ textAlign: 'center', fontWeight: 800, marginBottom: 32, color: 'var(--text)' }}>Checkout</h2>
                 <div style={{ marginBottom: 24 }}>
-                    <div style={{ fontWeight: 600, fontSize: 18 }}>Order Summary</div>
-                    <ul style={{ padding: 0, listStyle: 'none', margin: '16px 0' }}>
-                        {cartItems && cartItems.map(item => (
-                            <li key={item.id} style={{ marginBottom: 8, color: 'var(--text)' }}>
-                                {item.name} x {item.quantity} <span style={{ color: 'var(--muted-2)' }}>(${item.price} each)</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <div style={{ fontWeight: 700, fontSize: 20, marginTop: 16 }}>
-                        Total: <span style={{ color: 'var(--success)' }}>${cartTotal?.toFixed(2)}</span>
+                    <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text)' }}>Order Summary</div>
+
+                    <div style={{
+                        marginTop: 14,
+                        padding: 14,
+                        borderRadius: 12,
+                        background: 'var(--surface-3)',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-1)'
+                    }}>
+                        {safeCartItems.length === 0 ? (
+                            <div style={{ color: 'var(--muted-2)', fontWeight: 700 }}>No items found.</div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {safeCartItems.map((item) => {
+                                    const imageSrc = `http://localhost:5000${item.image_path || '/images/other_images/dummy_product.jpg'}`;
+                                    const itemPrice = Number(item.price || 0);
+                                    const itemQty = Number(item.quantity || 0);
+                                    const lineTotal = itemPrice * itemQty;
+
+                                    return (
+                                        <div key={item.id} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            gap: 12,
+                                            padding: 12,
+                                            borderRadius: 12,
+                                            border: '1px solid var(--border)',
+                                            background: 'var(--surface-2)'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                                                <img
+                                                    src={imageSrc}
+                                                    alt={item.name}
+                                                    style={{ width: 46, height: 46, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface-3)', flexShrink: 0 }}
+                                                    onError={(e) => {
+                                                        e.currentTarget.onerror = null;
+                                                        e.currentTarget.src = 'http://localhost:5000/images/other_images/dummy_product.jpg';
+                                                    }}
+                                                />
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ color: 'var(--text)', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {item.name}
+                                                    </div>
+                                                    <div style={{ color: 'var(--muted-2)', fontWeight: 700, fontSize: 13 }}>
+                                                        Qty {itemQty} · ${itemPrice.toFixed(2)} each
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ color: 'var(--text)', fontWeight: 900, flexShrink: 0 }}>
+                                                ${lineTotal.toFixed(2)}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ fontWeight: 800, fontSize: 20, marginTop: 16, color: 'var(--text)' }}>
+                        Total: <span style={{ color: 'var(--success)' }}>${safeCartTotal.toFixed(2)}</span>
                     </div>
                 </div>
                 {/* Stripe payment form */}
@@ -162,8 +220,8 @@ const CheckoutPage = () => {
                         {processing ? 'Processing...' : 'Pay with Stripe'}
                     </button>
                 </form>
-                {error && <div style={{ color: 'red', marginTop: 16 }}>{error}</div>}
-                {success && <div style={{ color: 'green', marginTop: 16 }}>{success}</div>}
+                {error && <div style={{ color: 'var(--danger)', marginTop: 16, fontWeight: 700 }}>{error}</div>}
+                {success && <div style={{ color: 'var(--success)', marginTop: 16, fontWeight: 700 }}>{success}</div>}
             </div>
         </div>
     );

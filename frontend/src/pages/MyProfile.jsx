@@ -165,9 +165,18 @@ const MyProfile = () => {
         ? previewUrl
         : backendImageUrl(profile?.avatar_path);
 
+    const roleValue = String(profile?.role || '').toLowerCase();
+    const shouldShowRole = roleValue !== 'customer' && roleValue !== '';
+
     return (
         <div className="profile-page">
             <div className="profile-shell">
+                <div className="profile-topbar">
+                    <Link to="/products" className="profile-btn">
+                        Back to products
+                    </Link>
+                </div>
+
                 <div className="profile-card">
                     <div className="profile-header">
                         <div>
@@ -176,10 +185,6 @@ const MyProfile = () => {
                         </div>
 
                         <div className="profile-actions">
-                            <Link to="/products" className="profile-link">
-                                Back to products
-                            </Link>
-
                             {!isEditing ? (
                                 <button type="button" onClick={startEdit} className="profile-btn">
                                     Edit Profile
@@ -233,74 +238,86 @@ const MyProfile = () => {
                             >
                                 {uploading ? 'Uploading…' : 'Upload Avatar'}
                             </button>
-
-                            <div className="profile-hint">Tip: Use a square image for best results.</div>
                         </div>
 
                         <div className="profile-panel">
                             <div className="profile-panel-title">Account Info</div>
 
                             <div className="profile-fields">
-                                <div className="profile-label">First Name</div>
-                                {isEditing ? (
-                                    <input
-                                        value={draft.first_name}
-                                        onChange={(e) => setDraft((d) => ({ ...d, first_name: e.target.value }))}
-                                        className="profile-input"
-                                    />
-                                ) : (
-                                    <div className="profile-value">{profile?.first_name || ''}</div>
+                                <div className="profile-field">
+                                    <div className="profile-field-label">First Name</div>
+                                    {isEditing ? (
+                                        <input
+                                            value={draft.first_name}
+                                            onChange={(e) => setDraft((d) => ({ ...d, first_name: e.target.value }))}
+                                            className="profile-input"
+                                        />
+                                    ) : (
+                                        <div className="profile-value">{profile?.first_name || '—'}</div>
+                                    )}
+                                </div>
+
+                                <div className="profile-field">
+                                    <div className="profile-field-label">Last Name</div>
+                                    {isEditing ? (
+                                        <input
+                                            value={draft.last_name}
+                                            onChange={(e) => setDraft((d) => ({ ...d, last_name: e.target.value }))}
+                                            className="profile-input"
+                                        />
+                                    ) : (
+                                        <div className="profile-value">{profile?.last_name || '—'}</div>
+                                    )}
+                                </div>
+
+                                <div className="profile-field">
+                                    <div className="profile-field-label">Email</div>
+                                    {isEditing ? (
+                                        <input
+                                            value={draft.email}
+                                            onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+                                            className="profile-input"
+                                        />
+                                    ) : (
+                                        <div className="profile-value" style={{ wordBreak: 'break-word' }}>{profile?.email || '—'}</div>
+                                    )}
+                                </div>
+
+                                {shouldShowRole && (
+                                    <div className="profile-field">
+                                        <div className="profile-field-label">Role</div>
+                                        <div className="profile-value">{profile?.role || '—'}</div>
+                                    </div>
                                 )}
 
-                                <div className="profile-label">Last Name</div>
-                                {isEditing ? (
-                                    <input
-                                        value={draft.last_name}
-                                        onChange={(e) => setDraft((d) => ({ ...d, last_name: e.target.value }))}
-                                        className="profile-input"
-                                    />
-                                ) : (
-                                    <div className="profile-value">{profile?.last_name || ''}</div>
-                                )}
+                                <div className="profile-field">
+                                    <div className="profile-field-label">Phone</div>
+                                    {isEditing ? (
+                                        <input
+                                            value={draft.phone_number}
+                                            onChange={(e) => setDraft((d) => ({ ...d, phone_number: e.target.value }))}
+                                            className="profile-input"
+                                        />
+                                    ) : (
+                                        <div className="profile-value">{profile?.phone_number || '—'}</div>
+                                    )}
+                                </div>
 
-                                <div className="profile-label">Email</div>
-                                {isEditing ? (
-                                    <input
-                                        value={draft.email}
-                                        onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-                                        className="profile-input"
-                                    />
-                                ) : (
-                                    <div className="profile-value" style={{ wordBreak: 'break-word' }}>{profile?.email || ''}</div>
-                                )}
-
-                                <div className="profile-label">Role</div>
-                                <div className="profile-value">{profile?.role || ''}</div>
-
-                                <div className="profile-label">Phone</div>
-                                {isEditing ? (
-                                    <input
-                                        value={draft.phone_number}
-                                        onChange={(e) => setDraft((d) => ({ ...d, phone_number: e.target.value }))}
-                                        className="profile-input"
-                                    />
-                                ) : (
-                                    <div className="profile-value">{profile?.phone_number || '—'}</div>
-                                )}
-
-                                <div className="profile-label" style={{ alignSelf: 'start', paddingTop: 8 }}>Address</div>
-                                {isEditing ? (
-                                    <textarea
-                                        value={draft.address}
-                                        onChange={(e) => setDraft((d) => ({ ...d, address: e.target.value }))}
-                                        className="profile-input profile-textarea"
-                                    />
-                                ) : (
-                                    <div className="profile-value" style={{ whiteSpace: 'pre-wrap' }}>{profile?.address || '—'}</div>
-                                )}
+                                <div className="profile-field" style={{ gridColumn: '1 / -1' }}>
+                                    <div className="profile-field-label">Address</div>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={draft.address}
+                                            onChange={(e) => setDraft((d) => ({ ...d, address: e.target.value }))}
+                                            className="profile-input profile-textarea"
+                                        />
+                                    ) : (
+                                        <div className="profile-value" style={{ whiteSpace: 'pre-wrap' }}>{profile?.address || '—'}</div>
+                                    )}
+                                </div>
                             </div>
 
-                            {isEditing && <div className="profile-note">Note: role cannot be changed here.</div>}
+                            {shouldShowRole && isEditing && <div className="profile-note">Note: role cannot be changed here.</div>}
                         </div>
                     </div>
                 </div>

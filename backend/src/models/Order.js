@@ -32,7 +32,7 @@ const getAllOrders = async () => {
 // Admin: get all orders with the owning user's email
 const getAllOrdersWithUserEmail = async () => {
     const result = await pool.query(
-        `SELECT o.*, u.email AS user_email
+        `SELECT o.*, u.email AS user_email, u.avatar_path AS avatar_path
          FROM orders o
          JOIN users u ON o.user_id = u.id
          ORDER BY o.created_at DESC`
@@ -43,7 +43,7 @@ const getAllOrdersWithUserEmail = async () => {
 // Admin: get a single order with the owning user's email
 const getOrderByIdWithUserEmail = async (id) => {
     const result = await pool.query(
-        `SELECT o.*, u.email AS user_email
+        `SELECT o.*, u.email AS user_email, u.avatar_path AS avatar_path
          FROM orders o
          JOIN users u ON o.user_id = u.id
          WHERE o.id = $1`,

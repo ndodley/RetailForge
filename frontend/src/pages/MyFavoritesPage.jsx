@@ -20,6 +20,9 @@ const MyFavoritesPage = () => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [stockFilter, setStockFilter] = useState('any');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
+
+    const pageSize = 8;
 
     const api = useMemo(() => {
         return axios.create({
@@ -120,6 +123,14 @@ const MyFavoritesPage = () => {
         return visible;
     }, [products, search, sortBy, sortOrder, stockFilter]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [visibleProducts.length, search, sortBy, sortOrder, stockFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(visibleProducts.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedProducts = visibleProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     if (loading) {
         return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
     }
@@ -133,13 +144,30 @@ const MyFavoritesPage = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
-            <div style={{ maxWidth: 1200, margin: '2.5rem auto', padding: '2rem 1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)' }}>My Favorites</h2>
-                    <Link to="/products" style={{ color: 'var(--link)', textDecoration: 'underline', fontWeight: 800 }}>
+        <div style={{ background: 'var(--app-bg)', padding: '2rem 1rem' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 12 }}>
+                    <Link
+                        to="/products"
+                        style={{
+                            background: 'var(--surface-3)',
+                            color: 'var(--text)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 12,
+                            padding: '10px 12px',
+                            fontWeight: 900,
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
                         Browse products
                     </Link>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)' }}>My Favorites</h2>
                 </div>
 
                 <div style={{ marginTop: 16 }}>
@@ -167,13 +195,70 @@ const MyFavoritesPage = () => {
                 )}
 
                 {visibleProducts.length > 0 && (
-                    <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18 }}>
-                        {visibleProducts.map((p) => (
-                            <div key={p.id} style={{ display: 'flex', justifyContent: 'center' }}>
-                                <ProductCard product={p} />
+                    <>
+                        <div style={{
+                            marginTop: 18,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 12,
+                            flexWrap: 'wrap',
+                        }}>
+                            <div style={{ color: 'var(--muted-2)', fontWeight: 800 }}>
+                                Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, visibleProducts.length)} of {visibleProducts.length}
                             </div>
-                        ))}
-                    </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <button
+                                    type="button"
+                                    disabled={safePage <= 1}
+                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                    style={{
+                                        background: 'var(--surface-3)',
+                                        color: 'var(--text)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 12,
+                                        padding: '10px 12px',
+                                        fontWeight: 900,
+                                        cursor: safePage <= 1 ? 'not-allowed' : 'pointer',
+                                        opacity: safePage <= 1 ? 0.6 : 1,
+                                    }}
+                                >
+                                    Prev
+                                </button>
+
+                                <div style={{ color: 'var(--muted-2)', fontWeight: 900 }}>
+                                    Page {safePage} / {totalPages}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    disabled={safePage >= totalPages}
+                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                    style={{
+                                        background: 'var(--surface-3)',
+                                        color: 'var(--text)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 12,
+                                        padding: '10px 12px',
+                                        fontWeight: 900,
+                                        cursor: safePage >= totalPages ? 'not-allowed' : 'pointer',
+                                        opacity: safePage >= totalPages ? 0.6 : 1,
+                                    }}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 18, alignItems: 'stretch' }}>
+                            {pagedProducts.map((p) => (
+                                <div key={p.id} style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <ProductCard product={p} />
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

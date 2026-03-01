@@ -16,7 +16,10 @@ const ProductTable = () => {
     const [sortBy, setSortBy] = useState('best');
     const [sortOrder, setSortOrder] = useState('asc');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     // Fetch product, department, and category lists from backend
     useEffect(() => {
@@ -149,6 +152,14 @@ const ProductTable = () => {
         setFilteredProducts(filtered);
     }, [products, categories, selectedDepartment, selectedCategory, search, sortBy, sortOrder]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [filteredProducts.length]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedProducts = filteredProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     return (
         <div>
             <div style={{ maxWidth: 980 }}>
@@ -163,7 +174,7 @@ const ProductTable = () => {
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
                 <button
                     type="button"
                     className="admin-btn admin-btn--sm"
@@ -180,79 +191,100 @@ const ProductTable = () => {
             </div>
 
             {filteredProducts.length > 0 ? (
-                <div className="admin-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style={{ width: 220 }}>Name</th>
-                                <th style={{ width: 180 }}>Brand</th>
-                                <th style={{ width: 120 }}>Rating</th>
-                                <th style={{ width: 140 }}>Price</th>
-                                <th style={{ width: 120 }}>Stock</th>
-                                <th style={{ width: 220 }}>Category</th>
-                                <th style={{ width: 120 }}>Image</th>
-                                <th style={{ width: 220 }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredProducts.map((product) => (
-                                <tr
-                                    key={product.id}
-                                    onClick={() => navigate(`/products/${product.id}`)}
-                                    style={{ cursor: 'pointer' }}
-                                    title="View product"
-                                >
-                                    <td style={{ fontWeight: 900 }}>{product.name}</td>
-                                    <td style={{ fontWeight: 800 }}>{product.brand || '—'}</td>
-                                    <td style={{ fontWeight: 800 }}>{Number(product.rating || 0).toFixed(1)}</td>
-                                    <td style={{ fontWeight: 900 }}>${product.price}</td>
-                                    <td style={{ fontWeight: 800 }}>{product.stock}</td>
-                                    <td style={{ fontWeight: 800 }}>{product.category_name || 'Unassigned'}</td>
-                                    <td>
-                                        {product.image_path ? (
-                                            <img
-                                                src={`http://localhost:5000${product.image_path}`}
-                                                alt={product.name}
-                                                width="52"
-                                                height="52"
-                                                style={{ objectFit: 'cover' }}
-                                                onError={(e) => {
-                                                    e.target.src = '/images/other_images/dummy_product.jpg';
-                                                }}
-                                            />
-                                        ) : (
-                                            <span style={{ color: 'var(--muted)', fontWeight: 700 }}>No Image</span>
-                                        )}
-                                    </td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button
-                                                className="admin-btn admin-btn--sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    navigate(`/admin/products/upsert/${product.id}`);
-                                                }}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="admin-btn admin-btn--sm admin-btn--danger"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(product.id);
-                                                }}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredProducts.length)} of {filteredProducts.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className="admin-grid-card admin-grid-card--clickable"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => navigate(`/products/${product.id}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        navigate(`/products/${product.id}`);
+                                    }
+                                }}
+                                title="View product"
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                    <div className="admin-grid-title" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{product.name}</div>
+                                    {product.image_path ? (
+                                        <img
+                                            src={`http://localhost:5000${product.image_path}`}
+                                            alt={product.name}
+                                            width="44"
+                                            height="44"
+                                            style={{ objectFit: 'cover' }}
+                                            onError={(e) => {
+                                                e.target.src = '/images/other_images/dummy_product.jpg';
+                                            }}
+                                        />
+                                    ) : null}
+                                </div>
+
+                                <div className="admin-grid-meta">Brand: {product.brand || '—'}</div>
+                                <div className="admin-grid-meta">Category: {product.category_name || 'Unassigned'}</div>
+                                <div className="admin-grid-meta">Rating: {Number(product.rating || 0).toFixed(1)}</div>
+                                <div className="admin-grid-meta">Price: ${product.price}</div>
+                                <div className="admin-grid-meta">Stock: {product.stock}</div>
+
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/admin/products/upsert/${product.id}`);
+                                        }}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(product.id);
+                                        }}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No products found.</div>
             )}

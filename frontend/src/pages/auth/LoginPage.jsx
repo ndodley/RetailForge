@@ -34,11 +34,13 @@ const LoginPage = () => {
 
     return (
         <div style={{
-            minHeight: '100vh',
+            minHeight: '100%',
             background: 'var(--app-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            padding: '3rem 1rem',
+            boxSizing: 'border-box',
         }}>
             <form onSubmit={handleSubmit} style={{
                 background: 'var(--surface-2)',
