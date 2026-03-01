@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import AdvancedSearchPanel from '../components/common/AdvancedSearchPanel';
 import { useAuth } from '../hooks/useAuth';
 
 const Stars = ({ value, onChange, readOnly = false }) => {
@@ -44,6 +45,15 @@ const MyReviewsPage = () => {
     const [pageLoading, setPageLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [page, setPage] = useState(1);
+    const pageSize = 6;
+
+    const [search, setSearch] = useState('');
+    const [ratingFilter, setRatingFilter] = useState('any');
+    const [sortBy, setSortBy] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
+    const [filtersOpen, setFiltersOpen] = useState(false);
+
     const [editingId, setEditingId] = useState(null);
     const [editRating, setEditRating] = useState(5);
     const [editComment, setEditComment] = useState('');
@@ -79,6 +89,88 @@ const MyReviewsPage = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, user]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [reviews.length, search, ratingFilter, sortBy, sortOrder]);
+
+    const filterSections = useMemo(() => {
+        return [
+            {
+                key: 'rating',
+                title: 'Rating',
+                type: 'radio',
+                value: ratingFilter,
+                onChange: (v) => setRatingFilter(String(v)),
+                options: [
+                    { value: 'any', label: 'Any' },
+                    { value: '5', label: '5 stars' },
+                    { value: '4', label: '4 stars' },
+                    { value: '3', label: '3 stars' },
+                    { value: '2', label: '2 stars' },
+                    { value: '1', label: '1 star' },
+                ],
+            },
+            {
+                key: 'sort',
+                title: 'Sort',
+                type: 'radio',
+                value: sortBy,
+                onChange: (v) => setSortBy(String(v)),
+                options: [
+                    { value: 'date', label: 'Date' },
+                    { value: 'rating', label: 'Rating' },
+                    { value: 'product', label: 'Product Name' },
+                ],
+            },
+            {
+                key: 'order',
+                title: 'Order',
+                type: 'radio',
+                value: sortOrder,
+                onChange: (v) => setSortOrder(String(v)),
+                options: [
+                    { value: 'desc', label: 'Descending' },
+                    { value: 'asc', label: 'Ascending' },
+                ],
+            },
+        ];
+    }, [ratingFilter, sortBy, sortOrder]);
+
+    const visibleReviews = useMemo(() => {
+        let visible = Array.isArray(reviews) ? reviews : [];
+
+        const query = search.trim().toLowerCase();
+        if (query) {
+            visible = visible.filter((r) => {
+                const productName = String(r?.product_name ?? '').toLowerCase();
+                const comment = String(r?.comment ?? '').toLowerCase();
+                const rating = String(r?.rating ?? '').toLowerCase();
+                return productName.includes(query) || comment.includes(query) || rating.includes(query);
+            });
+        }
+
+        if (ratingFilter !== 'any') {
+            const desired = Number(ratingFilter);
+            visible = visible.filter((r) => Number(r?.rating || 0) === desired);
+        }
+
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        visible = [...visible].sort((a, b) => {
+            if (sortBy === 'rating') return multiplier * (Number(a?.rating || 0) - Number(b?.rating || 0));
+            if (sortBy === 'product') return multiplier * String(a?.product_name || '').localeCompare(String(b?.product_name || ''));
+
+            const aTime = a?.created_at ? new Date(a.created_at).getTime() : 0;
+            const bTime = b?.created_at ? new Date(b.created_at).getTime() : 0;
+            return multiplier * (aTime - bTime);
+        });
+
+        return visible;
+    }, [reviews, search, ratingFilter, sortBy, sortOrder]);
+
+    const totalPages = Math.max(1, Math.ceil(visibleReviews.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedReviews = visibleReviews.slice((safePage - 1) * pageSize, safePage * pageSize);
 
     const startEdit = (review) => {
         setEditingId(review.id);
@@ -127,7 +219,7 @@ const MyReviewsPage = () => {
     };
 
     if (loading) {
-        return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading...</div>;
+        return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading...</div>;
     }
 
     if (!user) {
@@ -135,18 +227,36 @@ const MyReviewsPage = () => {
     }
 
     if (pageLoading) {
-        return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading your reviews...</div>;
+        return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading your reviews...</div>;
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0 }}>
-            <div style={{ maxWidth: 1100, margin: '2.5rem auto', padding: 0, background: 'var(--surface-2)', borderRadius: 18, boxShadow: 'var(--shadow-2)', border: '1px solid var(--border)', overflow: 'hidden' }}>
-                <div style={{ padding: '2rem 1.25rem 1.25rem', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)', letterSpacing: 0.3 }}>My Reviews</h2>
-                    <Link to="/products" style={{ color: 'var(--link)', textDecoration: 'underline', fontWeight: 800 }}>
+        <div style={{ background: 'var(--app-bg)', padding: '2rem 1rem' }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 12 }}>
+                    <Link
+                        to="/products"
+                        style={{
+                            background: 'var(--surface-3)',
+                            color: 'var(--text)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 12,
+                            padding: '10px 12px',
+                            fontWeight: 900,
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                    >
                         Browse products
                     </Link>
+                </div>
+
+            <div style={{ background: 'var(--surface-2)', borderRadius: 18, boxShadow: 'var(--shadow-2)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                <div style={{ padding: '1.75rem 1.5rem 1.25rem', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)', letterSpacing: 0.3 }}>My Reviews</h2>
                 </div>
 
                 <div style={{ marginTop: 10, color: 'var(--muted)', fontWeight: 700 }}>
@@ -155,7 +265,21 @@ const MyReviewsPage = () => {
 
                 </div>
 
-                <div style={{ padding: '1.5rem 1.25rem 2rem' }}>
+                <div style={{ padding: '1.5rem' }}>
+
+                {reviews.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                        <AdvancedSearchPanel
+                            title="Advanced Search"
+                            query={search}
+                            onQueryChange={setSearch}
+                            isOpen={filtersOpen}
+                            onToggleOpen={() => setFiltersOpen((v) => !v)}
+                            onSearch={() => setFiltersOpen(false)}
+                            sections={filterSections}
+                        />
+                    </div>
+                )}
 
                 {error && (
                     <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--danger)', padding: '12px 14px', borderRadius: 12, marginTop: 16, fontWeight: 800 }}>
@@ -169,9 +293,73 @@ const MyReviewsPage = () => {
                     </div>
                 )}
 
-                {reviews.length > 0 && (
-                    <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 14 }}>
-                        {reviews.map((r) => {
+                {!error && reviews.length > 0 && visibleReviews.length === 0 && (
+                    <div style={{ padding: '1rem 0', color: 'var(--muted)', fontWeight: 800 }}>
+                        No reviews match your search.
+                    </div>
+                )}
+
+                {!error && visibleReviews.length > 0 && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                        marginTop: 14,
+                        marginBottom: 16,
+                    }}>
+                        <div style={{ color: 'var(--muted-2)', fontWeight: 800 }}>
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, visibleReviews.length)} of {visibleReviews.length}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <button
+                                type="button"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                style={{
+                                    background: 'var(--surface-3)',
+                                    color: 'var(--text)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 12,
+                                    padding: '10px 12px',
+                                    fontWeight: 900,
+                                    cursor: safePage <= 1 ? 'not-allowed' : 'pointer',
+                                    opacity: safePage <= 1 ? 0.6 : 1,
+                                }}
+                            >
+                                Prev
+                            </button>
+
+                            <div style={{ color: 'var(--muted-2)', fontWeight: 900 }}>
+                                Page {safePage} / {totalPages}
+                            </div>
+
+                            <button
+                                type="button"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                style={{
+                                    background: 'var(--surface-3)',
+                                    color: 'var(--text)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 12,
+                                    padding: '10px 12px',
+                                    fontWeight: 900,
+                                    cursor: safePage >= totalPages ? 'not-allowed' : 'pointer',
+                                    opacity: safePage >= totalPages ? 0.6 : 1,
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {pagedReviews.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, alignItems: 'stretch' }}>
+                        {pagedReviews.map((r) => {
                             const isEditing = editingId === r.id;
                             const createdAt = r.created_at ? new Date(r.created_at).toLocaleString() : '';
                             return (
@@ -181,6 +369,8 @@ const MyReviewsPage = () => {
                                     padding: 14,
                                     background: 'var(--surface-3)',
                                     boxShadow: 'var(--shadow-1)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
                                 }}>
                                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                                         <Link to={`/products/${r.product_id}`} style={{ display: 'inline-block', flex: '0 0 auto' }}>
@@ -240,6 +430,10 @@ const MyReviewsPage = () => {
                                                 color: 'var(--text)',
                                                 lineHeight: 1.55,
                                                 whiteSpace: 'pre-wrap',
+                                                overflowWrap: 'anywhere',
+                                                wordBreak: 'break-word',
+                                                maxHeight: '4.8em',
+                                                overflow: 'hidden',
                                             }}>
                                                 {r.comment || ''}
                                             </div>
@@ -325,6 +519,7 @@ const MyReviewsPage = () => {
                 )}
 
                 </div>
+            </div>
             </div>
         </div>
     );

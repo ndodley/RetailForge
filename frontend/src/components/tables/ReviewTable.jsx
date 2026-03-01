@@ -4,6 +4,7 @@ import axios from 'axios';
 import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
 import { downloadCsv } from '../../utils/csv';
 import { reviewCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
+import { backendImageUrl } from '../../utils/images';
 
 const ReviewTable = () => {
   const [reviews, setReviews] = useState([]);
@@ -14,7 +15,27 @@ const ReviewTable = () => {
   const [sortBy, setSortBy] = useState('best');
   const [sortOrder, setSortOrder] = useState('asc');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const navigate = useNavigate();
+
+  const pageSize = 6;
+
+  const renderStars = (ratingValue) => {
+    const rating = Math.max(0, Math.min(5, Math.round(Number(ratingValue) || 0)));
+    return (
+      <span aria-label={`Rating: ${rating} out of 5`} title={`${rating} / 5`}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <span
+            key={i}
+            aria-hidden="true"
+            style={{ color: i < rating ? 'var(--accent)' : 'var(--muted)', letterSpacing: 1 }}
+          >
+            {i < rating ? '★' : '☆'}
+          </span>
+        ))}
+      </span>
+    );
+  };
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/reviews')
@@ -112,6 +133,14 @@ const ReviewTable = () => {
     return next;
   }, [productFilter, ratingFilter, reviews, search, sortBy, sortOrder]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [filtered.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const pagedReviews = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   const handleEdit = (id) => {
     navigate(`/admin/reviews/upsert/${id}`);
   };
@@ -136,7 +165,7 @@ const ReviewTable = () => {
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
         <button
           type="button"
           className="admin-btn admin-btn--sm"
@@ -156,65 +185,112 @@ const ReviewTable = () => {
         <div style={{ padding: '10px 0', color: 'var(--muted)', fontWeight: 700 }}>Loading...</div>
       ) : null}
 
-      <div className="admin-table">
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: 240 }}>Product</th>
-              <th style={{ width: 220 }}>User</th>
-              <th style={{ width: 120 }}>Rating</th>
-              <th>Comment</th>
-              <th style={{ width: 220 }}>Date Created</th>
-              <th style={{ width: 180 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {!loading && filtered.length === 0 ? (
-              <tr>
-                <td colSpan="6" style={{ color: 'var(--muted)', fontWeight: 700 }}>
-                  No reviews found.
-                </td>
-              </tr>
-            ) : !loading ? (
-              filtered.map(r => (
-                <tr key={r.id}>
-                  <td style={{ fontWeight: 900 }}>{r.product_name}</td>
-                  <td style={{ fontWeight: 800 }}>{r.username}</td>
-                  <td style={{ fontWeight: 900 }}>{r.rating}</td>
-                  <td style={{ color: 'var(--muted)', whiteSpace: 'pre-line' }}>{r.comment}</td>
-                  <td style={{ color: 'var(--muted)' }}>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
-                  <td>
-                    <div className="admin-row-actions">
-                      <button
-                        onClick={() => handleEdit(r.id)}
-                        className="admin-icon-btn"
-                        title="Edit"
-                      >
-                        <span className="admin-action-icon" aria-hidden="true">✎</span>
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        className="admin-icon-btn admin-icon-btn--danger"
-                        title="Delete"
-                      >
-                        <span className="admin-action-icon" aria-hidden="true">✕</span>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" style={{ color: 'var(--muted)', fontWeight: 700 }}>
-                  Loading...
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {!loading && filtered.length > 0 ? (
+        <div className="admin-pagination">
+          <div className="admin-pagination-meta">
+            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filtered.length)} of {filtered.length}
+          </div>
+          <div className="admin-pagination-controls">
+            <button
+              type="button"
+              className="admin-btn admin-btn--sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+            >
+              Prev
+            </button>
+            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+            <button
+              type="button"
+              className="admin-btn admin-btn--sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {!loading && filtered.length === 0 ? (
+        <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No reviews found.</div>
+      ) : null}
+
+      {!loading && filtered.length > 0 ? (
+        <div className="admin-grid">
+          {pagedReviews.map((r) => (
+            <div key={r.id} className="admin-grid-card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                  <img
+                    src={backendImageUrl(r.product_image_path)}
+                    alt=""
+                    width={38}
+                    height={38}
+                    style={{ objectFit: 'cover' }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = backendImageUrl('/images/other_images/dummy_product.jpg');
+                    }}
+                  />
+                  <div className="admin-grid-title" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
+                    {r.product_name}
+                  </div>
+                </div>
+
+                <div className="admin-grid-meta" style={{ whiteSpace: 'nowrap' }}>
+                  {r.created_at ? new Date(r.created_at).toLocaleDateString() : '—'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <img
+                    src={backendImageUrl(r.avatar_path)}
+                    alt=""
+                    width={26}
+                    height={26}
+                    style={{ objectFit: 'cover', borderRadius: 999 }}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = backendImageUrl('');
+                    }}
+                  />
+                  <div className="admin-grid-meta" style={{ overflowWrap: 'anywhere' }}>User: {r.username}</div>
+                </div>
+                <div className="admin-grid-meta">{renderStars(r.rating)}</div>
+              </div>
+
+              <div className="admin-grid-meta" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                {r.comment}
+              </div>
+
+              <div className="admin-grid-actions admin-row-actions">
+                <button
+                  type="button"
+                  onClick={() => handleEdit(r.id)}
+                  className="admin-icon-btn"
+                  title="Edit"
+                >
+                  <span className="admin-action-icon" aria-hidden="true">✎</span>
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(r.id)}
+                  className="admin-icon-btn admin-icon-btn--danger"
+                  title="Delete"
+                >
+                  <span className="admin-action-icon" aria-hidden="true">✕</span>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 };

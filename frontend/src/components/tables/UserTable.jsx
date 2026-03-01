@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { downloadCsv } from '../../utils/csv';
 import { userCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
+import { backendImageUrl } from '../../utils/images';
 
 const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 'desc' }) => {
     const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -30,26 +34,26 @@ const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 
         }
     };
 
-    const filteredUsers = users.filter((user) => {
-        if (roleFilter !== "All" && user.role !== roleFilter.toLowerCase()) return false;
+    const sortedUsers = useMemo(() => {
+        const filteredUsers = (Array.isArray(users) ? users : []).filter((user) => {
+            if (roleFilter !== "All" && user.role !== String(roleFilter).toLowerCase()) return false;
 
-        const q = String(searchQuery || '').trim().toLowerCase();
-        if (!q) return true;
+            const q = String(searchQuery || '').trim().toLowerCase();
+            if (!q) return true;
 
-        const firstName = String(user.first_name || '').toLowerCase();
-        const lastName = String(user.last_name || '').toLowerCase();
-        const email = String(user.email || '').toLowerCase();
-        const phone = String(user.phone_number || '').toLowerCase();
+            const firstName = String(user.first_name || '').toLowerCase();
+            const lastName = String(user.last_name || '').toLowerCase();
+            const email = String(user.email || '').toLowerCase();
+            const phone = String(user.phone_number || '').toLowerCase();
 
-        return (
-            firstName.includes(q) ||
-            lastName.includes(q) ||
-            email.includes(q) ||
-            phone.includes(q)
-        );
-    });
+            return (
+                firstName.includes(q) ||
+                lastName.includes(q) ||
+                email.includes(q) ||
+                phone.includes(q)
+            );
+        });
 
-    const sortedUsers = (() => {
         const multiplier = sortOrder === 'asc' ? 1 : -1;
         const next = [...filteredUsers];
 
@@ -62,11 +66,19 @@ const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 
         });
 
         return next;
-    })();
+    }, [roleFilter, searchQuery, sortBy, sortOrder, users]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [sortedUsers.length]);
+
+    const totalPages = Math.max(1, Math.ceil(sortedUsers.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedUsers = sortedUsers.slice((safePage - 1) * pageSize, safePage * pageSize);
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '14px 0 10px' }}>
                 <button
                     type="button"
                     className="admin-btn admin-btn--sm"
@@ -82,43 +94,82 @@ const UserTable = ({ roleFilter, searchQuery = '', sortBy = 'best', sortOrder = 
                 </button>
             </div>
             {sortedUsers.length > 0 ? (
-                <div className="admin-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style={{ width: 180 }}>First Name</th>
-                                <th style={{ width: 180 }}>Last Name</th>
-                                <th>Email</th>
-                                <th style={{ width: 180 }}>Phone</th>
-                                <th style={{ width: 280 }}>Address</th>
-                                <th style={{ width: 220 }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedUsers.map((user) => (
-                                <tr key={user.id}>
-                                    <td style={{ fontWeight: 800 }}>{`${user.first_name}`}</td>
-                                    <td style={{ fontWeight: 800 }}>{`${user.last_name}`}</td>
-                                    <td style={{ fontWeight: 700 }}>{user.email}</td>
-                                    <td style={{ color: 'var(--muted)' }}>{user.phone_number || "N/A"}</td>
-                                    <td style={{ color: 'var(--muted)' }}>{user.address || "N/A"}</td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button className="admin-btn admin-btn--sm" onClick={() => navigate(`/admin/users/upsert/${user.id}`)}>
-                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
-                                                Edit
-                                            </button>
-                                            <button className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => handleDelete(user.id)}>
-                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
-                                                Delete
-                                            </button>
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, sortedUsers.length)} of {sortedUsers.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedUsers.map((user) => (
+                            <div key={user.id} className="admin-grid-card">
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                                        <img
+                                            src={backendImageUrl(user.avatar_path)}
+                                            alt=""
+                                            width={38}
+                                            height={38}
+                                            style={{ objectFit: 'cover', borderRadius: 999 }}
+                                            onError={(e) => {
+                                                e.currentTarget.onerror = null;
+                                                e.currentTarget.src = backendImageUrl('');
+                                            }}
+                                        />
+                                        <div className="admin-grid-title" style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
+                                            {String(user.first_name || '')} {String(user.last_name || '')}
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </div>
+                                <div className="admin-grid-meta">Email: {user.email}</div>
+                                <div className="admin-grid-meta">Role: {user.role || '—'}</div>
+                                <div className="admin-grid-meta">Phone: {user.phone_number || 'N/A'}</div>
+                                <div className="admin-grid-meta" style={{ overflowWrap: 'anywhere' }}>Address: {user.address || 'N/A'}</div>
+
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={() => navigate(`/admin/users/upsert/${user.id}`)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={() => handleDelete(user.id)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No users found.</div>
             )}

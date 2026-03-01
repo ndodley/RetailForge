@@ -13,7 +13,10 @@ const CategoryTable = () => {
     const [sortBy, setSortBy] = useState('best');
     const [sortOrder, setSortOrder] = useState('asc');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     // ✅ Fetch categories with department info
     useEffect(() => {
@@ -117,6 +120,14 @@ const CategoryTable = () => {
         return next;
     }, [categories, search, selectedDepartment, sortBy, sortOrder]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [visibleCategories.length]);
+
+    const totalPages = Math.max(1, Math.ceil(visibleCategories.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedCategories = visibleCategories.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     return (
         <div>
             <div style={{ maxWidth: 980, marginBottom: 12 }}>
@@ -131,7 +142,7 @@ const CategoryTable = () => {
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
                 <button
                     type="button"
                     className="admin-btn admin-btn--sm"
@@ -148,45 +159,64 @@ const CategoryTable = () => {
             </div>
 
             {visibleCategories.length > 0 ? (
-                <div className="admin-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style={{ width: 220 }}>Name</th>
-                                <th>Description</th>
-                                <th style={{ width: 220 }}>Department</th>
-                                <th style={{ width: 220 }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {visibleCategories.map((category) => (
-                                <tr key={category.id}>
-                                    <td style={{ fontWeight: 800 }}>{category.name}</td>
-                                    <td style={{ color: 'var(--muted)' }}>{category.description || 'No description'}</td>
-                                    <td style={{ fontWeight: 800 }}>{category.department_name || 'Unassigned'}</td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button
-                                                className="admin-btn admin-btn--sm"
-                                                onClick={() => navigate(`/admin/categories/upsert/${category.id}`)}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="admin-btn admin-btn--sm admin-btn--danger"
-                                                onClick={() => handleDelete(category.id)}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, visibleCategories.length)} of {visibleCategories.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedCategories.map((category) => (
+                            <div key={category.id} className="admin-grid-card">
+                                <div className="admin-grid-title">{category.name}</div>
+                                <div className="admin-grid-meta">Department: {category.department_name || 'Unassigned'}</div>
+                                <div className="admin-grid-meta" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                                    {category.description || 'No description'}
+                                </div>
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={() => navigate(`/admin/categories/upsert/${category.id}`)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={() => handleDelete(category.id)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No categories found.</div>
             )}

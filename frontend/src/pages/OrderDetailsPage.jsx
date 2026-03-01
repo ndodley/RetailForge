@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 
 const OrderDetailsPage = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { user, loading } = useAuth();
     const [order, setOrder] = useState(null);
     const [items, setItems] = useState([]);
@@ -33,14 +34,14 @@ const OrderDetailsPage = () => {
         if (id && !loading) fetchOrder();
     }, [id, loading]);
 
-    if (loading) return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading...</div>;
+    if (loading) return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading...</div>;
     if (!user) return <Navigate to="/login" replace />;
-    if (pageLoading) return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading order details...</div>;
-    if (error) return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--danger)', fontWeight: 800 }}>{error}</div>;
-    if (!order) return <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Order not found.</div>;
+    if (pageLoading) return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Loading order details...</div>;
+    if (error) return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--danger)', fontWeight: 800 }}>{error}</div>;
+    if (!order) return <div style={{ background: 'var(--app-bg)', padding: '2rem', textAlign: 'center', color: 'var(--text)' }}>Order not found.</div>;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--app-bg)', padding: 0, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--app-bg)', padding: 0, display: 'flex', justifyContent: 'center' }}>
             <div style={{
                 maxWidth: 980,
                 width: '100%',
@@ -55,9 +56,38 @@ const OrderDetailsPage = () => {
                 <div style={{ padding: '2rem 1.5rem 1.25rem', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <h2 style={{ fontWeight: 900, margin: 0, color: 'var(--text)', letterSpacing: 0.3 }}>Order Details</h2>
-                        <Link to="/my-orders" style={{ color: 'var(--link)', textDecoration: 'underline', fontWeight: 900 }}>
-                            &larr; Back to My Orders
-                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/my-orders')}
+                            style={{
+                                textDecoration: 'none',
+                                color: 'var(--text)',
+                                fontWeight: 900,
+                                fontSize: 14,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                letterSpacing: 0.2,
+                                padding: '10px 12px',
+                                borderRadius: 12,
+                                background: 'var(--nav-pill-bg)',
+                                border: '1px solid var(--border)',
+                                boxShadow: 'var(--shadow-1)',
+                                transition: 'filter 0.18s ease, transform 0.18s ease',
+                                cursor: 'pointer',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.filter = 'brightness(0.98)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.filter = 'none';
+                                e.currentTarget.style.transform = 'none';
+                            }}
+                        >
+                            <span aria-hidden="true">←</span>
+                            Back to My Orders
+                        </button>
                     </div>
                 </div>
 

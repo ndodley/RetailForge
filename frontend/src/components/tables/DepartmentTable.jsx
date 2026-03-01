@@ -11,7 +11,10 @@ const DepartmentTable = () => {
     const [sortBy, setSortBy] = useState('best');
     const [sortOrder, setSortOrder] = useState('asc');
     const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     // ✅ Fetch department list from backend
     useEffect(() => {
@@ -81,6 +84,14 @@ const DepartmentTable = () => {
         return next;
     }, [departments, search, sortBy, sortOrder]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [visibleDepartments.length]);
+
+    const totalPages = Math.max(1, Math.ceil(visibleDepartments.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedDepartments = visibleDepartments.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     return (
         <div>
             <div style={{ maxWidth: 980, marginBottom: 12 }}>
@@ -95,7 +106,7 @@ const DepartmentTable = () => {
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
                 <button
                     type="button"
                     className="admin-btn admin-btn--sm"
@@ -112,41 +123,60 @@ const DepartmentTable = () => {
             </div>
 
             {visibleDepartments.length > 0 ? (
-                <div className="admin-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th style={{ width: 220 }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {visibleDepartments.map((department) => (
-                                <tr key={department.id}>
-                                    <td style={{ fontWeight: 800 }}>{department.name}</td>
-                                    <td>
-                                        <div className="admin-row-actions">
-                                            <button
-                                                className="admin-btn admin-btn--sm"
-                                                onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✎</span>
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="admin-btn admin-btn--sm admin-btn--danger"
-                                                onClick={() => handleDelete(department.id)}
-                                            >
-                                                <span className="admin-action-icon" aria-hidden="true">✕</span>
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, visibleDepartments.length)} of {visibleDepartments.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedDepartments.map((department) => (
+                            <div key={department.id} className="admin-grid-card">
+                                <div className="admin-grid-title">{department.name}</div>
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={() => handleDelete(department.id)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No departments found.</div>
             )}
