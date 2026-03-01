@@ -31,7 +31,7 @@ if (!fs.existsSync(productImagesDir)) {
 const storage = multer.diskStorage({
     destination: productImagesDir,
     filename: (req, file, cb) => {
-        cb(null, `product_${Date.now()}_${file.originalname}`);
+        cb(null, `product_${file.originalname}`);
     }
 });
 const upload = multer({ storage });
@@ -95,6 +95,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const orderDetailsRoutes = require('./routes/orderDetailsRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const favoriteRoutes = require('./routes/favoriteRoutes');
 
 //console.log('departmentRoutes'); // ✅ Debugging Check
 //console.log('categoryRoutes'); // ✅ Debugging Check
@@ -114,6 +115,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/order-details', orderDetailsRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 
 

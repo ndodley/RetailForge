@@ -40,6 +40,26 @@ export const AuthProvider = ({ children }) => {
         fetchUser();
     }, []);
 
+    const refreshUser = async () => {
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/me', {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!res.ok) {
+                setUser(null);
+                return null;
+            }
+
+            const data = await res.json();
+            setUser(data.user || null);
+            return data.user || null;
+        } catch {
+            return null;
+        }
+    };
+
     const login = async (email, password) => {
         try {
             const res = await fetch('http://localhost:5000/api/auth/login', {
@@ -49,16 +69,22 @@ export const AuthProvider = ({ children }) => {
                 credentials: 'include', // Ensure session cookies are sent
             });
 
-            if (!res.ok) throw new Error(`Login failed: ${res.status} ${res.statusText}`);
+            // Backend returns 200 with { user: null, error: 'Invalid credentials' } for wrong logins.
+            // Avoid throwing/logging for this expected case.
+            if (!res.ok) {
+                return null;
+            }
 
             const data = await res.json();
-            if (data.user) {
+            if (data?.user) {
                 setUser(data.user);
                 return data.user;
             }
+
             return null;
         } catch (error) {
-            console.error("Login failed:", error);
+            // Only unexpected failures (network/server down) should be logged.
+            console.error('Login request failed:', error);
             return null;
         }
     };
@@ -100,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, refreshUser, loading }}>
             {children}
         </AuthContext.Provider>
     );

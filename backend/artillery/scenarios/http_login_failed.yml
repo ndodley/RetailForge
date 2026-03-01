@@ -1,0 +1,20 @@
+config:
+  target: "http://localhost:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+  processor: "../processors/common.js"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+scenarios:
+  - name: "Invalid login (should publish auth.login_failed when Kafka enabled)"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "not-a-user@example.com"
+            password: "wrong-password"
+      - think: 1

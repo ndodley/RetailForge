@@ -34,17 +34,20 @@ const LoginPage = () => {
 
     return (
         <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
+            minHeight: '100%',
+            background: 'var(--app-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            padding: '3rem 1rem',
+            boxSizing: 'border-box',
         }}>
             <form onSubmit={handleSubmit} style={{
-                background: '#fff',
+                background: 'var(--surface-2)',
                 padding: '2.5rem 2.5rem 2rem 2.5rem',
                 borderRadius: 18,
                 boxShadow: '0 6px 32px rgba(0,123,255,0.10)',
+                border: '1px solid var(--border)',
                 minWidth: 340,
                 maxWidth: 380,
                 display: 'flex',
@@ -53,27 +56,31 @@ const LoginPage = () => {
                 gap: 18
             }}>
                 <div style={{ fontSize: 44, marginBottom: 8, color: '#007bff' }}>🔒</div>
-                <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 8, color: '#222', letterSpacing: 1 }}>Sign In</h2>
+                <h2 style={{ fontWeight: 800, fontSize: 28, marginBottom: 8, color: 'var(--text)', letterSpacing: 1 }}>Sign In</h2>
                 {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
                 <input type="email" name="email" placeholder="Email" onChange={handleChange} required style={{
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: 8,
-                    border: '1.5px solid #b3c6e0',
+                    border: '1.5px solid var(--border)',
                     fontSize: 16,
                     marginBottom: 8,
                     outline: 'none',
                     transition: 'border 0.2s',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text)'
                 }} />
                 <input type="password" name="password" placeholder="Password" onChange={handleChange} required style={{
                     width: '100%',
                     padding: '12px 16px',
                     borderRadius: 8,
-                    border: '1.5px solid #b3c6e0',
+                    border: '1.5px solid var(--border)',
                     fontSize: 16,
                     marginBottom: 8,
                     outline: 'none',
                     transition: 'border 0.2s',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text)'
                 }} />
                 <button type="submit" style={{
                     width: '100%',
@@ -90,8 +97,8 @@ const LoginPage = () => {
                     marginBottom: 8,
                     transition: 'background 0.2s, box-shadow 0.2s',
                 }}>Login</button>
-                <div style={{ fontSize: 15, color: '#555', marginTop: 8 }}>
-                    Don't have an account? <a href="/register" style={{ color: '#007bff', textDecoration: 'underline', fontWeight: 600 }}>Register</a>
+                <div style={{ fontSize: 15, color: 'var(--muted)', marginTop: 8 }}>
+                    Don't have an account? <a href="/register" style={{ color: 'var(--link)', textDecoration: 'underline', fontWeight: 600 }}>Register</a>
                 </div>
             </form>
         </div>

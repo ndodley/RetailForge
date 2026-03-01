@@ -2,9 +2,9 @@
 const pool = require('../db');
 
 // Create a new order
-const createOrder = async ({ user_id, total, address, status = 'pending' }) => {
+const createOrder = async ({ user_id, total, address, status = 'pending' }, db = pool) => {
     // Insert a new order and return the created row
-    const result = await pool.query(
+    const result = await db.query(
         `INSERT INTO orders (user_id, total, address, status) VALUES ($1, $2, $3, $4) RETURNING *`,
         [user_id, total, address, status]
     );
@@ -29,6 +29,29 @@ const getAllOrders = async () => {
     return result.rows;
 };
 
+// Admin: get all orders with the owning user's email
+const getAllOrdersWithUserEmail = async () => {
+    const result = await pool.query(
+        `SELECT o.*, u.email AS user_email, u.avatar_path AS avatar_path
+         FROM orders o
+         JOIN users u ON o.user_id = u.id
+         ORDER BY o.created_at DESC`
+    );
+    return result.rows;
+};
+
+// Admin: get a single order with the owning user's email
+const getOrderByIdWithUserEmail = async (id) => {
+    const result = await pool.query(
+        `SELECT o.*, u.email AS user_email, u.avatar_path AS avatar_path
+         FROM orders o
+         JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1`,
+        [id]
+    );
+    return result.rows[0];
+};
+
 // Update the status (and timestamp) of an order
 const updateOrderStatus = async (id, status) => {
     await pool.query(
@@ -48,6 +71,8 @@ module.exports = {
     getOrderById,
     getOrdersByUser,
     getAllOrders,
+    getAllOrdersWithUserEmail,
+    getOrderByIdWithUserEmail,
     updateOrderStatus,
     deleteOrder,
 };

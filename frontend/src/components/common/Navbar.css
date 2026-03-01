@@ -1,155 +1,36 @@
-nav {
-    background: #222; /* ✅ Darker navbar for better contrast */
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* ------------------------------
+   Navbar interactions (scoped)
+--------------------------------*/
 
-ul {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-    padding: 0;
-    width: 100%; /* ✅ Ensures full-width layout */
-}
-
-li {
-    display: inline-block;
-}
-
-/* ✅ Styling for the Project Title */
-.project-title {
-    background: #ff9800; /* ✅ Distinct background */
-    padding: 10px 15px;
-    border-radius: 5px;
-}
-
-.project-title a {
-    font-weight: bold;
-    color: white;
-    font-size: 20px;
-}
-
-/* ✅ Dropdown Styling */
-.dropdown {
-    position: relative;
-    cursor: pointer;
-}
-
-.dropdown span {
-    color: white;
-    font-weight: bold;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    background: #444; /* ✅ Dark background for better readability */
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    min-width: 150px;
-}
-
-.dropdown:hover .dropdown-menu {
-    display: block;
-    flex-direction: column; /* ✅ Ensures items stack vertically */
-}
-
-.dropdown-menu li {
-    display: block; /* ✅ Each item gets its own row */
-    padding: 5px 10px;
-}
-
-.dropdown-menu a {
-    color: white; /* ✅ Ensures visibility on dark background */
-}
-
-/* Show the admin dropdown on hover */
-.navbar-admin-dropdown {
-    display: none;
-}
-li:hover > .navbar-admin-dropdown {
-    display: block;
-}
-
-.navbar-admin-dropdown {
-    padding: 0;
-    margin: 0;
-    min-width: 170px;
-    background: #232526;
-    border: 1.5px solid #ff9800;
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(255,140,0,0.10);
-    z-index: 101;
-    width: 200px; /* Set a fixed width for dropdown */
-}
-
-.navbar-admin-dropdown li {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    display: block;
-}
-
-.navbar-admin-dropdown li a {
-    color: #ff9800 !important;
-    text-decoration: none;
-    font-weight: 600;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px 18px;
-    border-radius: 0;
-    background: transparent;
-    transition: background 0.2s, color 0.2s;
-    text-align: left;
-    position: relative;
-    z-index: 101;
-}
-
-.navbar-admin-dropdown li a:hover, .navbar-admin-dropdown li a:focus {
-    background: #ff9800 !important;
-    color: #000 !important;
+.navbar a {
     text-decoration: none;
 }
 
-/* ✅ Fully Right-Aligned User Section */
-.right-section {
-    margin-left: auto; /* ✅ Forces it to the far right */
-    display: flex;
-    gap: 15px;
-    align-items: center;
+.navbar-pill:hover,
+.navbar-pill:focus-visible {
+    filter: brightness(1.05);
+    border-color: rgba(255, 152, 0, 0.55) !important;
+    background: rgba(255, 152, 0, 0.14) !important;
+    text-decoration: none !important;
+    outline: none;
 }
 
-/* ✅ Welcome Text Styling */
-.welcome-text {
-    color: #ff9800; /* ✅ Makes welcome text pop */
-    font-weight: bold;
+.navbar-pill--active {
+    border-color: rgba(255, 152, 0, 0.55) !important;
+    background: rgba(255, 152, 0, 0.16) !important;
 }
 
-/* ✅ Logout Button Styling */
-.logout-btn {
-    background-color: #ff9800;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 5px;
+.navbar-menu-item:hover,
+.navbar-menu-item:focus-visible {
+    background: rgba(255, 152, 0, 0.14) !important;
+    outline: none;
 }
 
-.logout-btn:hover {
-    background-color: #e68900;
+.navbar-menu-item--active {
+    background: rgba(255, 152, 0, 0.18) !important;
 }
 
-/* ✅ Link Styling */
-a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-}
-
-a:hover {
-    text-decoration: underline;
+.theme-toggle:focus-visible {
+    outline: 2px solid rgba(255, 152, 0, 0.55);
+    outline-offset: 2px;
 }

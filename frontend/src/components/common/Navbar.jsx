@@ -1,19 +1,26 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../context/ThemeContext";
+import { backendImageUrl } from "../../utils/images";
 import "./Navbar.css";
 
 function Navbar() {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate(); // <-- Add navigate
     const [adminOpen, setAdminOpen] = useState(false); // State for admin dropdown
+    const [accountOpen, setAccountOpen] = useState(false); // State for account dropdown
 
     // Close dropdown when clicking outside
     React.useEffect(() => {
         const handleClick = (e) => {
             if (!e.target.closest('.admin-dropdown-parent')) {
                 setAdminOpen(false);
+            }
+            if (!e.target.closest('.account-dropdown-parent')) {
+                setAccountOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClick);
@@ -22,6 +29,7 @@ function Navbar() {
 
     const handleLogout = async () => {
         await logout();
+        setAccountOpen(false);
         // If admin and on an admin page, redirect to home
         if (user && (user.role === 'admin' || user.role === 'manager') && location.pathname.startsWith('/admin/')) {
             navigate('/');
@@ -29,97 +37,323 @@ function Navbar() {
     };
 
     return (
-        <nav style={{
-            background: 'linear-gradient(90deg, #181818 60%, #232526 100%)',
-            borderRadius: 18,
-            margin: '18px auto 32px auto',
-            maxWidth: 1200,
-            padding: '0.5rem 2.5rem',
-            position: 'relative',
-            zIndex: 10,
-            border: 'none',
-            boxShadow: '0 2px 8px rgba(255,140,0,0.10)'
-        }}>
-            <ul style={{
+        <nav
+            className="navbar"
+            style={{
+                borderBottom: '1px solid var(--border)',
+                background: 'var(--nav-bg)',
+                padding: '1.5rem 1rem',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000
+            }}
+        >
+            <div style={{
+                maxWidth: 1200,
+                margin: '0 auto',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-                gap: 18
+                gap: 18,
+                width: '100%'
             }}>
-                <li style={{ fontWeight: 900, fontSize: 26, letterSpacing: 1, color: '#ff9800', marginRight: 32 }}>
-                    <Link to="/" style={{ textDecoration: 'none', color: '#ff9800', borderBottom: location.pathname === '/' ? '2.5px solid #ff9800' : '2.5px solid transparent', paddingBottom: 2, transition: 'border 0.2s' }}>Department Store</Link>
-                </li>
-                {/* Admin Dropdown for Managers or Admins, only if logged in */}
-                {user && (user.role === "manager" || user.role === "admin") && (
-                    <li className="admin-dropdown-parent" style={{ position: 'relative', marginRight: 18 }}>
-                        <span
-                            style={{ fontWeight: 600, cursor: 'pointer', color: '#fff', padding: '8px 16px', borderRadius: 8, transition: 'background 0.2s' }}
-                            onClick={() => setAdminOpen((open) => !open)}
-                        >
-                            Admin <span style={{ fontSize: 16 }}>▼</span>
-                        </span>
-                        <ul
-                            className="navbar-admin-dropdown"
+                {/* Left: Brand + main links (Admin, Products) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', minWidth: 0 }}>
+                    <div style={{ fontWeight: 900, fontSize: 'clamp(24px, 2.4vw, 32px)', letterSpacing: 0.3, color: 'var(--accent)', marginRight: 18, lineHeight: 1 }}>
+                        <Link
+                            to="/"
                             style={{
-                                position: 'absolute',
-                                top: 38,
-                                left: 0,
-                                background: '#232526',
-                                border: '1.5px solid #ff9800',
-                                borderRadius: 10,
-                                boxShadow: '0 4px 16px rgba(255,140,0,0.10)',
-                                padding: 0,
-                                margin: 0,
-                                minWidth: 170,
-                                zIndex: 100,
-                                display: adminOpen ? 'block' : 'none',
+                                textDecoration: 'none',
+                                color: 'var(--accent)',
+                                borderBottom: location.pathname === '/' ? '3px solid var(--accent)' : '3px solid transparent',
+                                paddingBottom: 3,
+                                transition: 'border 0.2s'
                             }}
                         >
-                            <li><Link to="/admin/departments" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Departments</Link></li>
-                            <li><Link to="/admin/categories" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Categories</Link></li>
-                            <li><Link to="/admin/products" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Products</Link></li>
-                            <li><Link to="/admin/users" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Users</Link></li>
-                            <li><Link to="/admin/reviews" onClick={() => setAdminOpen(false)} style={{ display: 'block', padding: '12px 18px', color: '#ff9800', textDecoration: 'none', fontWeight: 600 }}>Reviews</Link></li>
-                        </ul>
-                    </li>
-                )}
-                <li style={{ marginRight: 18 }}>
-                    <Link to="/products" style={{ fontWeight: 600, color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname.startsWith('/products') ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Products</Link>
-                </li>
-                {/* Shopping Cart without product count */}
-                <li style={{ marginRight: 18 }}>
-                    <Link to="/cart" title="Shopping Cart" style={{ fontSize: 22, display: 'flex', alignItems: 'center', color: '#ff9800', textDecoration: 'none', padding: '8px 16px', borderRadius: 8, borderBottom: location.pathname === '/cart' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>
-                        <span role="img" aria-label="cart" style={{ marginRight: 4 }}>🛒</span>
-                    </Link>
-                </li>
-                <li style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {user ? (
-                        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,152,0,0.12)', borderRadius: 999, padding: '6px 18px', boxShadow: '0 1px 4px rgba(255,140,0,0.04)' }}>
-                            <span style={{ color: '#fff', fontWeight: 600, fontSize: 16, marginRight: 8 }}>Welcome, {user.first_name}!</span>
-                            <button onClick={handleLogout} style={{
-                                background: 'linear-gradient(90deg, #ff9800 60%, #ff5722 100%)',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: 8,
-                                padding: '8px 22px',
-                                fontWeight: 700,
-                                fontSize: 16,
-                                boxShadow: '0 2px 8px rgba(255,140,0,0.08)',
-                                cursor: 'pointer',
-                                transition: 'background 0.2s, box-shadow 0.2s',
-                            }}>Logout</button>
+                            RetailForge
+                        </Link>
+                    </div>
+
+                    {/* Admin Dropdown for Managers or Admins, only if logged in */}
+                    {user && (user.role === "manager" || user.role === "admin") && (
+                        <div className="admin-dropdown-parent" style={{ position: 'relative' }}>
+                            <button
+                                type="button"
+                                className="navbar-pill"
+                                style={{
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    color: 'var(--text)',
+                                    padding: '8px 16px',
+                                    borderRadius: 999,
+                                    transition: 'background 0.2s, border 0.2s',
+                                    border: '1.5px solid rgba(255,152,0,0.35)',
+                                    background: adminOpen ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)'
+                                }}
+                                onClick={() => setAdminOpen((open) => !open)}
+                            >
+                                Admin <span style={{ fontSize: 14 }}>▼</span>
+                            </button>
+                            <ul
+                                className="navbar-admin-dropdown"
+                                style={{
+                                    position: 'absolute',
+                                    top: 44,
+                                    left: 0,
+                                    background: 'var(--nav-menu-bg)',
+                                    border: '1.5px solid rgba(255,152,0,0.45)',
+                                    borderRadius: 14,
+                                    boxShadow: 'var(--shadow-2)',
+                                    padding: 8,
+                                    margin: 0,
+                                    minWidth: 190,
+                                    zIndex: 100,
+                                    display: adminOpen ? 'block' : 'none',
+                                    listStyle: 'none'
+                                }}
+                            >
+                                <li>
+                                    <Link
+                                        to="/admin/departments"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/departments' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Departments
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/categories"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/categories' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Categories
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/products"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/products' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Products
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/users"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/users' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Users
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/reviews"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/reviews' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Reviews
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/admin/orders"
+                                        className={`navbar-menu-item ${location.pathname === '/admin/orders' ? 'navbar-menu-item--active' : ''}`}
+                                        onClick={() => setAdminOpen(false)}
+                                        style={{ display: 'block', padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 800, borderRadius: 10 }}
+                                    >
+                                        Orders
+                                    </Link>
+                                </li>
+                            </ul>
                         </div>
+                    )}
+
+                    <Link to="/products" className={`navbar-pill ${location.pathname.startsWith('/products') ? 'navbar-pill--active' : ''}`} style={{
+                        fontWeight: 800,
+                        color: 'var(--text)',
+                        textDecoration: 'none',
+                        padding: '8px 16px',
+                        borderRadius: 999,
+                        border: '1.5px solid transparent',
+                        background: location.pathname.startsWith('/products') ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)',
+                        transition: 'background 0.2s, border 0.2s'
+                    }}>Products</Link>
+                </div>
+
+                {/* Right: Cart + Account */}
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+                    <Link to="/cart" title="Shopping Cart" className={`navbar-pill ${location.pathname === '/cart' ? 'navbar-pill--active' : ''}`} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        color: 'var(--accent)',
+                        textDecoration: 'none',
+                        padding: '8px 14px',
+                        borderRadius: 999,
+                        border: location.pathname === '/cart' ? '1.5px solid rgba(255,152,0,0.55)' : '1.5px solid rgba(255,152,0,0.30)',
+                        background: location.pathname === '/cart' ? 'rgba(255,152,0,0.10)' : 'var(--nav-pill-bg-2)',
+                        transition: 'background 0.2s, border 0.2s'
+                    }}>
+                        <span role="img" aria-label="cart" style={{ fontSize: 20 }}>🛒</span>
+                        <span style={{ fontWeight: 900, color: 'var(--text)' }}>Cart</span>
+                    </Link>
+
+                    {user ? (
+                        <>
+                            <div className="account-dropdown-parent" style={{ position: 'relative' }}>
+                                <button
+                                    type="button"
+                                    className="navbar-pill"
+                                    onClick={() => setAccountOpen((open) => !open)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 10,
+                                        padding: '8px 14px',
+                                        borderRadius: 999,
+                                        border: '1.5px solid rgba(255,152,0,0.35)',
+                                        background: accountOpen ? 'rgba(255,152,0,0.14)' : 'var(--nav-pill-bg)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s, border 0.2s'
+                                    }}
+                                >
+                                    <img
+                                        src={backendImageUrl(user.avatar_path)}
+                                        alt="Avatar"
+                                        style={{ width: 26, height: 26, borderRadius: 999, objectFit: 'cover', border: '1px solid rgba(255,152,0,0.45)' }}
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = backendImageUrl('');
+                                        }}
+                                    />
+                                    <span style={{ color: 'var(--text)', fontWeight: 900, fontSize: 14, maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {user.email || user.first_name}
+                                    </span>
+                                    <span style={{ color: 'var(--accent)', fontWeight: 900, fontSize: 12 }}>▼</span>
+                                </button>
+
+                                <ul style={{
+                                    position: 'absolute',
+                                    top: 46,
+                                    right: 0,
+                                    background: 'var(--nav-menu-bg)',
+                                    border: '1.5px solid rgba(255,152,0,0.45)',
+                                    borderRadius: 14,
+                                    boxShadow: 'var(--shadow-2)',
+                                    padding: 8,
+                                    margin: 0,
+                                    minWidth: 220,
+                                    zIndex: 120,
+                                    display: accountOpen ? 'block' : 'none',
+                                    listStyle: 'none'
+                                }}>
+                                    <li>
+                                        <Link to="/my-profile" className={`navbar-menu-item ${location.pathname === '/my-profile' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                            <span aria-hidden>👤</span> Profile
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/my-orders" className={`navbar-menu-item ${location.pathname === '/my-orders' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                            <span aria-hidden>📦</span> My Orders
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/my-reviews" className={`navbar-menu-item ${location.pathname === '/my-reviews' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                            <span aria-hidden>⭐</span> My Reviews
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/my-favorites" className={`navbar-menu-item ${location.pathname === '/my-favorites' ? 'navbar-menu-item--active' : ''}`} onClick={() => setAccountOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', color: 'var(--text)', textDecoration: 'none', fontWeight: 900, borderRadius: 10 }}>
+                                            <span aria-hidden>❤️</span> My Favorites
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={handleLogout}
+                                            className="navbar-menu-item"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 10,
+                                                padding: '10px 12px',
+                                                color: 'var(--text)',
+                                                textDecoration: 'none',
+                                                fontWeight: 900,
+                                                borderRadius: 10,
+                                                background: 'transparent',
+                                                border: 'none',
+                                                width: '100%',
+                                                cursor: 'pointer',
+                                                textAlign: 'left'
+                                            }}
+                                        >
+                                            <span aria-hidden>🚪</span> Logout
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </>
                     ) : (
                         <>
-                            <Link to="/login" style={{ color: '#ff9800', textDecoration: 'none', fontWeight: 700, fontSize: 16, padding: '8px 18px', borderRadius: 8, borderBottom: location.pathname === '/login' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Login</Link>
-                            <Link to="/register" style={{ color: '#ff9800', textDecoration: 'none', fontWeight: 700, fontSize: 16, padding: '8px 18px', borderRadius: 8, borderBottom: location.pathname === '/register' ? '2.5px solid #ff9800' : '2.5px solid transparent', transition: 'border 0.2s' }}>Register</Link>
+                            <Link to="/login" style={{
+                                color: 'var(--accent)',
+                                textDecoration: 'none',
+                                fontWeight: 900,
+                                fontSize: 14,
+                                padding: '8px 14px',
+                                borderRadius: 999,
+                                border: location.pathname === '/login' ? '1.5px solid rgba(255,152,0,0.55)' : '1.5px solid rgba(255,152,0,0.30)',
+                                background: location.pathname === '/login' ? 'rgba(255,152,0,0.10)' : 'var(--nav-pill-bg-2)',
+                                transition: 'background 0.2s, border 0.2s'
+                            }}>Login</Link>
+                            <Link to="/register" style={{
+                                color: 'var(--text)',
+                                textDecoration: 'none',
+                                fontWeight: 900,
+                                fontSize: 14,
+                                padding: '8px 14px',
+                                borderRadius: 999,
+                                border: '1.5px solid rgba(255,152,0,0.45)',
+                                background: 'rgba(255,152,0,0.14)',
+                                transition: 'background 0.2s, border 0.2s'
+                            }}>Register</Link>
                         </>
                     )}
-                </li>
-            </ul>
+
+                    <button
+                        type="button"
+                        className="navbar-pill theme-toggle"
+                        onClick={toggleTheme}
+                        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                        title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 8,
+                            padding: '8px 14px',
+                            borderRadius: 999,
+                            border: '1.5px solid rgba(255,152,0,0.35)',
+                            background: 'var(--nav-pill-bg)',
+                            color: 'var(--text)',
+                            cursor: 'pointer',
+                            fontWeight: 900,
+                            fontSize: 14,
+                            transition: 'background 0.2s, border 0.2s'
+                        }}
+                    >
+                        <span aria-hidden style={{ fontSize: 16 }}>{theme === 'dark' ? '🌙' : '☀️'}</span>
+                    </button>
+                </div>
+            </div>
         </nav>
     );
 }

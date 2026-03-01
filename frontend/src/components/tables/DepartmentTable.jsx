@@ -1,10 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
+import { downloadCsv } from '../../utils/csv';
+import { departmentCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const DepartmentTable = () => {
     const [departments, setDepartments] = useState([]);
+    const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('best');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     // ✅ Fetch department list from backend
     useEffect(() => {
@@ -30,33 +40,145 @@ const DepartmentTable = () => {
         }
     };
 
+    const filterSections = useMemo(() => {
+        return [
+            {
+                key: 'sort',
+                title: 'Sort',
+                type: 'radio',
+                value: sortBy,
+                onChange: (v) => setSortBy(String(v)),
+                options: [
+                    { value: 'best', label: 'Best Match' },
+                    { value: 'alpha', label: 'Alphabet' },
+                ],
+            },
+            {
+                key: 'order',
+                title: 'Order',
+                type: 'radio',
+                value: sortOrder,
+                onChange: (v) => setSortOrder(String(v)),
+                options: [
+                    { value: 'asc', label: 'Ascending' },
+                    { value: 'desc', label: 'Descending' },
+                ],
+            },
+        ];
+    }, [sortBy, sortOrder]);
+
+    const visibleDepartments = useMemo(() => {
+        let next = Array.isArray(departments) ? departments : [];
+
+        const q = String(search || '').trim().toLowerCase();
+        if (q) {
+            next = next.filter((d) => String(d.name || '').toLowerCase().includes(q));
+        }
+
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        next = [...next].sort((a, b) => {
+            if (sortBy === 'alpha') return multiplier * String(a.name || '').localeCompare(String(b.name || ''));
+            return 0;
+        });
+
+        return next;
+    }, [departments, search, sortBy, sortOrder]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [visibleDepartments.length]);
+
+    const totalPages = Math.max(1, Math.ceil(visibleDepartments.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedDepartments = visibleDepartments.slice((safePage - 1) * pageSize, safePage * pageSize);
+
     return (
         <div>
-            <h2>Department List</h2>
-            {departments.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {departments.map((department) => (
-                            <tr key={department.id}>
-                                <td>{department.id}</td>
-                                <td>{department.name}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}>Edit</button>
-                                    <button onClick={() => handleDelete(department.id)}>Delete</button>
-                                </td>
-                            </tr>
+            <div style={{ maxWidth: 980, marginBottom: 12 }}>
+                <AdvancedSearchPanel
+                    title="Advanced Search"
+                    query={search}
+                    onQueryChange={setSearch}
+                    isOpen={filtersOpen}
+                    onToggleOpen={() => setFiltersOpen((v) => !v)}
+                    onSearch={() => setFiltersOpen(false)}
+                    sections={filterSections}
+                />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
+                <button
+                    type="button"
+                    className="admin-btn admin-btn--sm"
+                    onClick={() => downloadCsv({
+                        rows: mapToCsvRows(departmentCsv, visibleDepartments),
+                        filename: departmentCsv.filename,
+                        columns: departmentCsv.columns,
+                    })}
+                    disabled={visibleDepartments.length === 0}
+                    title={visibleDepartments.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
+            </div>
+
+            {visibleDepartments.length > 0 ? (
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, visibleDepartments.length)} of {visibleDepartments.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedDepartments.map((department) => (
+                            <div key={department.id} className="admin-grid-card">
+                                <div className="admin-grid-title">{department.name}</div>
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={() => navigate(`/admin/departments/upsert/${department.id}`)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={() => handleDelete(department.id)}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                </>
             ) : (
-                <p>No departments found.</p>
+                <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No departments found.</div>
             )}
         </div>
     );

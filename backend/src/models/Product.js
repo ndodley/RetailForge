@@ -8,6 +8,8 @@ const getAllProducts = async () => {
         SELECT 
             products.id, 
             products.name, 
+            products.brand,
+            products.rating,
             products.price, 
             products.description, 
             products.stock, 
@@ -26,6 +28,8 @@ const getProductById = async (id) => {
         SELECT 
             products.id, 
             products.name, 
+            products.brand,
+            products.rating,
             products.price, 
             products.description, 
             products.stock, 
@@ -40,26 +44,26 @@ const getProductById = async (id) => {
 };
 
 // ✅ Create a new product with category reference
-const createProduct = async (name, price, description, stock, image_path, category_id) => {
+const createProduct = async (name, brand, rating, price, description, stock, image_path, category_id) => {
     const imagePath = image_path || DEFAULT_IMAGE_PATH;
     
     const result = await pool.query(`
-        INSERT INTO products (name, price, description, stock, image_path, category_id) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
-        RETURNING id, name, price, description, stock, image_path, category_id
-    `, [name, price, description, stock, imagePath, category_id]);
+        INSERT INTO products (name, brand, rating, price, description, stock, image_path, category_id) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        RETURNING id
+    `, [name, brand, rating, price, description, stock, imagePath, category_id]);
 
     return getProductById(result.rows[0].id); // ✅ Return full product with category reference
 };
 
 // ✅ Update an existing product with category reference
-const updateProduct = async (id, name, price, description, stock, image_path, category_id) => {
+const updateProduct = async (id, name, brand, rating, price, description, stock, image_path, category_id) => {
     const result = await pool.query(`
         UPDATE products 
-        SET name = $1, price = $2, description = $3, stock = $4, image_path = $5, category_id = $6 
-        WHERE id = $7 
-        RETURNING id, name, price, description, stock, image_path, category_id
-    `, [name, price, description, stock, image_path, category_id, id]);
+        SET name = $1, brand = $2, rating = $3, price = $4, description = $5, stock = $6, image_path = $7, category_id = $8 
+        WHERE id = $9 
+        RETURNING id
+    `, [name, brand, rating, price, description, stock, image_path, category_id, id]);
 
     return getProductById(result.rows[0].id); // ✅ Return full product with category reference
 };
@@ -67,7 +71,35 @@ const updateProduct = async (id, name, price, description, stock, image_path, ca
 // ✅ Delete a product
 const deleteProduct = async (id) => {
     const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
-    return result.rowCount > 0;
+    return result.rows[0] || null;
+};
+
+// ✅ Atomically decrement stock (fails if insufficient)
+const decrementStock = async (product_id, quantity, db = pool) => {
+    const qty = Number(quantity);
+    if (!Number.isFinite(qty) || !Number.isInteger(qty) || qty <= 0) {
+        const err = new Error('quantity must be a positive integer');
+        err.code = 'INVALID_QUANTITY';
+        throw err;
+    }
+
+    const result = await db.query(
+        `UPDATE products
+         SET stock = stock - $2
+         WHERE id = $1 AND stock >= $2
+         RETURNING id, stock`,
+        [product_id, qty]
+    );
+
+    if (result.rowCount === 0) {
+        const err = new Error('Insufficient stock');
+        err.code = 'INSUFFICIENT_STOCK';
+        err.product_id = product_id;
+        err.requested = qty;
+        throw err;
+    }
+
+    return result.rows[0];
 };
 
 module.exports = {  
@@ -75,5 +107,6 @@ module.exports = {
     getProductById,  
     createProduct,  
     updateProduct,  
-    deleteProduct  
+    deleteProduct,
+    decrementStock
 };

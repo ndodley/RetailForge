@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdvancedSearchPanel from '../common/AdvancedSearchPanel';
+import { downloadCsv } from '../../utils/csv';
+import { productCsv, mapToCsvRows } from '../../utils/adminCsvSchemas';
 
 const ProductTable = () => {
     const [products, setProducts] = useState([]);
@@ -9,7 +12,14 @@ const ProductTable = () => {
     const [selectedDepartment, setSelectedDepartment] = useState('all');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [filteredProducts, setFilteredProducts] = useState([]);
+    const [search, setSearch] = useState('');
+    const [sortBy, setSortBy] = useState('best');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [filtersOpen, setFiltersOpen] = useState(false);
+    const [page, setPage] = useState(1);
     const navigate = useNavigate();
+
+    const pageSize = 6;
 
     // Fetch product, department, and category lists from backend
     useEffect(() => {
@@ -40,105 +50,243 @@ const ProductTable = () => {
         }
     };
 
-    // Filter categories based on selected department
-    const filteredCategories = selectedDepartment === 'all'
-        ? []
-        : categories.filter(cat => parseInt(cat.department_id) === parseInt(selectedDepartment));
+    const departmentOptions = useMemo(() => {
+        const opts = [{ value: 'all', label: 'All Departments' }];
+        const sorted = [...departments].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        sorted.forEach((d) => opts.push({ value: String(d.id), label: d.name }));
+        return opts;
+    }, [departments]);
+
+    const availableCategories = useMemo(() => {
+        if (selectedDepartment === 'all') return [];
+        return categories.filter((cat) => Number(cat.department_id) === Number(selectedDepartment));
+    }, [categories, selectedDepartment]);
+
+    const categoryOptions = useMemo(() => {
+        const opts = [{ value: 'all', label: 'All Categories' }];
+        const sorted = [...availableCategories].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        sorted.forEach((c) => opts.push({ value: String(c.id), label: c.name }));
+        return opts;
+    }, [availableCategories]);
+
+    const filterSections = useMemo(() => {
+        return [
+            {
+                key: 'sort',
+                title: 'Sort',
+                type: 'radio',
+                value: sortBy,
+                onChange: (v) => setSortBy(String(v)),
+                options: [
+                    { value: 'best', label: 'Best Match' },
+                    { value: 'alpha', label: 'Alphabet' },
+                    { value: 'price', label: 'Price' },
+                    { value: 'stock', label: 'Stock' },
+                ],
+            },
+            {
+                key: 'order',
+                title: 'Order',
+                type: 'radio',
+                value: sortOrder,
+                onChange: (v) => setSortOrder(String(v)),
+                options: [
+                    { value: 'asc', label: 'Ascending' },
+                    { value: 'desc', label: 'Descending' },
+                ],
+            },
+            {
+                key: 'department',
+                title: 'Department',
+                type: 'radio',
+                value: selectedDepartment,
+                onChange: (v) => {
+                    const next = String(v);
+                    setSelectedDepartment(next);
+                    setSelectedCategory('all');
+                },
+                options: departmentOptions,
+            },
+            {
+                key: 'category',
+                title: 'Category',
+                type: 'radio',
+                value: selectedCategory,
+                onChange: (v) => setSelectedCategory(String(v)),
+                options: selectedDepartment === 'all' ? [{ value: 'all', label: 'All Categories' }] : categoryOptions,
+            },
+        ];
+    }, [categoryOptions, departmentOptions, selectedCategory, selectedDepartment, sortBy, sortOrder]);
 
     // Filter products based on department and category
     useEffect(() => {
         let filtered = products;
         if (selectedDepartment !== 'all') {
             filtered = filtered.filter(p => {
-                const category = categories.find(c => c.id === p.category_id);
-                return category && category.department_id === parseInt(selectedDepartment);
+                const category = categories.find((c) => Number(c.id) === Number(p.category_id));
+                return category && Number(category.department_id) === Number(selectedDepartment);
             });
         }
         if (selectedCategory !== 'all') {
-            filtered = filtered.filter(p => p.category_id === parseInt(selectedCategory));
+            filtered = filtered.filter((p) => Number(p.category_id) === Number(selectedCategory));
         }
+
+        if (search.trim()) {
+            const q = search.trim().toLowerCase();
+            filtered = filtered.filter((p) => {
+                const name = String(p.name || '').toLowerCase();
+                const description = String(p.description || '').toLowerCase();
+                const brand = String(p.brand || '').toLowerCase();
+                return name.includes(q) || description.includes(q) || brand.includes(q);
+            });
+        }
+
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        filtered = [...filtered].sort((a, b) => {
+            if (sortBy === 'alpha') return multiplier * String(a.name).localeCompare(String(b.name));
+            if (sortBy === 'price') return multiplier * (Number(a.price || 0) - Number(b.price || 0));
+            if (sortBy === 'stock') return multiplier * (Number(a.stock || 0) - Number(b.stock || 0));
+            return 0;
+        });
+
         setFilteredProducts(filtered);
-    }, [products, categories, selectedDepartment, selectedCategory]);
+    }, [products, categories, selectedDepartment, selectedCategory, search, sortBy, sortOrder]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [filteredProducts.length]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+    const safePage = Math.min(Math.max(1, page), totalPages);
+    const pagedProducts = filteredProducts.slice((safePage - 1) * pageSize, safePage * pageSize);
 
     return (
         <div>
-            <h2>Product List</h2>
-            {/* Department and Category Filters */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <select
-                    value={selectedDepartment}
-                    onChange={e => {
-                        setSelectedDepartment(e.target.value);
-                        setSelectedCategory('all');
-                    }}
-                >
-                    <option value="all">All Departments</option>
-                    {departments.map(dep => (
-                        <option key={dep.id} value={dep.id}>{dep.name}</option>
-                    ))}
-                </select>
-                {selectedDepartment !== 'all' ? (
-                    <select
-                        value={selectedCategory}
-                        onChange={e => setSelectedCategory(e.target.value)}
-                    >
-                        <option value="all">All Categories</option>
-                        {filteredCategories.map(cat => (
-                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                        ))}
-                    </select>
-                ) : null}
+            <div style={{ maxWidth: 980 }}>
+                <AdvancedSearchPanel
+                    title="Advanced Search"
+                    query={search}
+                    onQueryChange={setSearch}
+                    isOpen={filtersOpen}
+                    onToggleOpen={() => setFiltersOpen((v) => !v)}
+                    onSearch={() => setFiltersOpen(false)}
+                    sections={filterSections}
+                />
             </div>
-            <button onClick={() => navigate('/admin/products/upsert')}>Add New Product</button>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-start', margin: '12px 0 10px' }}>
+                <button
+                    type="button"
+                    className="admin-btn admin-btn--sm"
+                    onClick={() => downloadCsv({
+                        rows: mapToCsvRows(productCsv, filteredProducts),
+                        filename: productCsv.filename,
+                        columns: productCsv.columns,
+                    })}
+                    disabled={filteredProducts.length === 0}
+                    title={filteredProducts.length === 0 ? 'No data to export' : 'Download CSV'}
+                >
+                    Download CSV
+                </button>
+            </div>
 
             {filteredProducts.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Category</th>
-                            <th>Image</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredProducts.map((product) => (
-                            <tr key={product.id}>
-                                <td>{product.id}</td>
-                                <td>{product.name}</td>
-                                <td>{product.description || 'No description'}</td>
-                                <td>${product.price}</td>
-                                <td>{product.stock}</td>
-                                <td>{product.category_name || 'Unassigned'}</td>
-                                <td>
+                <>
+                    <div className="admin-pagination">
+                        <div className="admin-pagination-meta">
+                            Showing {(safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filteredProducts.length)} of {filteredProducts.length}
+                        </div>
+                        <div className="admin-pagination-controls">
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage <= 1}
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                title={safePage <= 1 ? 'Already on first page' : 'Previous page'}
+                            >
+                                Prev
+                            </button>
+                            <div className="admin-pagination-meta">Page {safePage} / {totalPages}</div>
+                            <button
+                                type="button"
+                                className="admin-btn admin-btn--sm"
+                                disabled={safePage >= totalPages}
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                title={safePage >= totalPages ? 'Already on last page' : 'Next page'}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="admin-grid">
+                        {pagedProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className="admin-grid-card admin-grid-card--clickable"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => navigate(`/products/${product.id}`)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        navigate(`/products/${product.id}`);
+                                    }
+                                }}
+                                title="View product"
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                                    <div className="admin-grid-title" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{product.name}</div>
                                     {product.image_path ? (
                                         <img
                                             src={`http://localhost:5000${product.image_path}`}
                                             alt={product.name}
-                                            width="50"
-                                            height="50"
+                                            width="44"
+                                            height="44"
+                                            style={{ objectFit: 'cover' }}
                                             onError={(e) => {
                                                 e.target.src = '/images/other_images/dummy_product.jpg';
                                             }}
                                         />
-                                    ) : (
-                                        <span>No Image</span>
-                                    )}
-                                </td>
-                                <td>
-                                    <button onClick={() => navigate(`/admin/products/upsert/${product.id}`)}>Edit</button>
-                                    <button onClick={() => handleDelete(product.id)}>Delete</button>
-                                </td>
-                            </tr>
+                                    ) : null}
+                                </div>
+
+                                <div className="admin-grid-meta">Brand: {product.brand || '—'}</div>
+                                <div className="admin-grid-meta">Category: {product.category_name || 'Unassigned'}</div>
+                                <div className="admin-grid-meta">Rating: {Number(product.rating || 0).toFixed(1)}</div>
+                                <div className="admin-grid-meta">Price: ${product.price}</div>
+                                <div className="admin-grid-meta">Stock: {product.stock}</div>
+
+                                <div className="admin-grid-actions admin-row-actions">
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/admin/products/upsert/${product.id}`);
+                                        }}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✎</span>
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-btn admin-btn--sm admin-btn--danger"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(product.id);
+                                        }}
+                                    >
+                                        <span className="admin-action-icon" aria-hidden="true">✕</span>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                </>
             ) : (
-                <p>No products found.</p>
+                <div style={{ padding: '6px 0', color: 'var(--muted)', fontWeight: 700 }}>No products found.</div>
             )}
         </div>
     );

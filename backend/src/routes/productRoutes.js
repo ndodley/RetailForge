@@ -5,12 +5,15 @@ const router = express.Router();
 const server = require('../server'); 
 //console.log('Upload Middleware:', server.upload); // ✅ Debugging Check
 
+const { authMiddleware, managerOnly } = require('../middleware/authMiddleware');
+
 const { 
     handleGetAllProducts, 
     handleGetProductById, 
     handleCreateProduct, 
     handleUpdateProduct, 
-    handleDeleteProduct 
+    handleDeleteProduct,
+    handleBulkCreateProducts
 } = require('../controllers/productController');
 
 // Define routes using correctly imported Multer middleware
@@ -26,6 +29,7 @@ router.get('/:id', handleGetProductById);
 
 // For now, keep them public for testing/demo:
 router.post('/', server.upload.single('image'), handleCreateProduct);
+router.post('/bulk', authMiddleware, managerOnly, handleBulkCreateProducts);
 router.put('/:id', server.upload.single('image'), handleUpdateProduct);
 router.delete('/:id', handleDeleteProduct);
 

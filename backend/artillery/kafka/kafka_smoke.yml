@@ -1,0 +1,22 @@
+# Optional: direct Kafka test (independent of your HTTP API)
+# Requires: `npm install --save-dev artillery-plugin-kafka`
+# Also requires Kafka running on localhost:9092.
+
+config:
+  phases:
+    - duration: 30
+      arrivalRate: 10
+  plugins:
+    kafka:
+      brokers:
+        - "localhost:9092"
+
+scenarios:
+  - name: "Kafka produce"
+    engine: kafka
+    flow:
+      - produce:
+          topic: "rf.smoke"
+          messages:
+            - key: "{{ $randomString() }}"
+              value: '{"type":"artillery.smoke","ts":"{{ $timestamp() }}"}'

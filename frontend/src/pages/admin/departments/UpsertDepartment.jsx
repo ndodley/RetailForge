@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import AdminLayout from '../../../components/admin/AdminLayout';
+import BulkUploadSection from '../../../components/admin/BulkUploadSection';
+import { departmentCsv } from '../../../utils/adminCsvSchemas';
 
 const UpsertDepartment = () => {
     const { id } = useParams();
@@ -34,26 +37,48 @@ const UpsertDepartment = () => {
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: 'linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%)',
-            padding: 0,
-        }}>
-            <div>
-                <h2>{id ? 'Edit Department' : 'Add New Department'}</h2>
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>Name:
-                            <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-                        </label>
-                        <button type="submit">{id ? 'Update Department' : 'Add Department'}</button>
+        <AdminLayout
+            title={id ? 'Edit Department' : 'Add New Department'}
+            subtitle="Departments are used to group categories and products."
+        >
+            <form onSubmit={handleSubmit}>
+                <div className="admin-field-grid">
+                    <div className="admin-field">
+                        <div className="admin-label">Department Name</div>
+                        <input
+                            className="admin-input"
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="e.g., Electronics"
+                            required
+                        />
                     </div>
-                    <div>
-                        <button type="button" onClick={() => navigate('/admin/departments')}>Go Back</button> {/* ✅ Added Go Back */}
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+
+                <div className="admin-actions" style={{ marginTop: 14 }}>
+                    <button className="admin-btn admin-btn--primary" type="submit">
+                        {id ? 'Update Department' : 'Add Department'}
+                    </button>
+                    <button className="admin-btn" type="button" onClick={() => navigate('/admin/departments')}>
+                        Go Back
+                    </button>
+                </div>
+            </form>
+
+            {!id ? (
+                <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--border)' }}>
+                    <BulkUploadSection
+                        title="Bulk Upload"
+                        description="Upload a departments CSV to create multiple departments at once."
+                        columns={departmentCsv.columns}
+                        filename={departmentCsv.filename}
+                        uploadUrl="http://localhost:5000/api/departments/bulk"
+                    />
+                </div>
+            ) : null}
+        </AdminLayout>
     );
 };
 

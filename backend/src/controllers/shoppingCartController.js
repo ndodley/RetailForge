@@ -22,16 +22,56 @@ exports.getCartItems = async (req, res) => {
 exports.addItem = async (req, res) => {
     const { cart_id, product_id, quantity } = req.body;
     if (!cart_id || !product_id || !quantity) return res.status(400).json({ error: 'Missing fields' });
-    const item = await ShoppingCart.addItem(cart_id, product_id, quantity);
-    res.json(item);
+    try {
+        const item = await ShoppingCart.addItem(cart_id, product_id, quantity);
+        res.json(item);
+    } catch (err) {
+        if (err?.code === 'INSUFFICIENT_STOCK') {
+            return res.status(409).json({
+                error: 'Insufficient stock',
+                product_id: err.product_id,
+                stock: err.stock,
+                requested: err.requested,
+            });
+        }
+        if (err?.code === 'INVALID_QUANTITY') {
+            return res.status(400).json({ error: err.message });
+        }
+        if (err?.code === 'PRODUCT_NOT_FOUND') {
+            return res.status(404).json({ error: err.message });
+        }
+
+        console.error('addItem error:', err);
+        return res.status(500).json({ error: 'Failed to add to cart.' });
+    }
 };
 
 // Update item quantity
 exports.updateItem = async (req, res) => {
     const { cart_id, product_id, quantity } = req.body;
     if (!cart_id || !product_id || !quantity) return res.status(400).json({ error: 'Missing fields' });
-    const item = await ShoppingCart.updateItem(cart_id, product_id, quantity);
-    res.json(item);
+    try {
+        const item = await ShoppingCart.updateItem(cart_id, product_id, quantity);
+        res.json(item);
+    } catch (err) {
+        if (err?.code === 'INSUFFICIENT_STOCK') {
+            return res.status(409).json({
+                error: 'Insufficient stock',
+                product_id: err.product_id,
+                stock: err.stock,
+                requested: err.requested,
+            });
+        }
+        if (err?.code === 'INVALID_QUANTITY') {
+            return res.status(400).json({ error: err.message });
+        }
+        if (err?.code === 'PRODUCT_NOT_FOUND') {
+            return res.status(404).json({ error: err.message });
+        }
+
+        console.error('updateItem error:', err);
+        return res.status(500).json({ error: 'Failed to update cart item.' });
+    }
 };
 
 // Remove item from cart
