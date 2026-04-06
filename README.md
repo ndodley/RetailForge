@@ -11,13 +11,18 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - [Architecture Highlights](#architecture-highlights)
 - [Pages (with screenshots)](#pages-with-screenshots)
 - [Project Structure](#project-structure)
-- [Setup & Installation](#setup--installation)
+- [Setup & Installation](#setup-installation)
 - [Environment Variables](#environment-variables)
 - [API Overview](#api-overview)
-- [CSV Export & Bulk Upload (Admin)](#csv-export--bulk-upload-admin)
-- [Security & Best Practices](#security--best-practices)
+- [CSV Export & Bulk Upload (Admin)](#csv-export-bulk-upload-admin)
+- [Security & Best Practices](#security-best-practices)
+- [Contributing](#contributing)
+- [Planned Features](#planned-features)
+- [Contact](#contact)
 
 ---
+
+<a id="tech-stack"></a>
 
 ## 🧰 Tech Stack
 
@@ -31,6 +36,8 @@ A full-stack e-commerce platform for a modern department store, built with the P
   - **Kafka** (optional) for event-driven workflows (orders/auth/inventory)
 
 ---
+
+<a id="features"></a>
 
 ## 🚀 Features
 
@@ -86,6 +93,8 @@ A full-stack e-commerce platform for a modern department store, built with the P
 
 ---
 
+<a id="architecture-highlights"></a>
+
 ## 🧠 Architecture Highlights
 
 - **Consistent UI shell**: Sticky navbar + global footer across all routes
@@ -95,6 +104,8 @@ A full-stack e-commerce platform for a modern department store, built with the P
 - **Event visibility (optional)**: Kafka worker subscribes to order/auth/inventory topics and logs events
 
 ---
+
+<a id="pages-with-screenshots"></a>
 
 ## 🗺️ Pages (with screenshots)
 
@@ -457,6 +468,8 @@ Upsert Review (`/admin/reviews/upsert`):
 
 ---
 
+<a id="project-structure"></a>
+
 ## 🏗️ Project Structure
 
 ```
@@ -486,6 +499,8 @@ RetailForge/
 ```
 
 ---
+
+<a id="setup-installation"></a>
 
 ## ⚙️ Setup & Installation
 
@@ -656,6 +671,8 @@ npm run dev
 
 ---
 
+<a id="environment-variables"></a>
+
 ## 🔑 Environment Variables
 
 ### Backend (`backend/.env`)
@@ -688,6 +705,8 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 ```
 
 ---
+
+<a id="api-overview"></a>
 
 ## 📚 API Overview
 
@@ -723,6 +742,8 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
   - `DELETE /api/favorites/:productId`
 
 ---
+
+<a id="csv-export-bulk-upload-admin"></a>
 
 ## 📦 CSV Export & Bulk Upload (Admin)
 
@@ -762,6 +783,8 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 
 ---
 
+<a id="security-best-practices"></a>
+
 ## 🛡️ Security & Best Practices
 
 - Passwords are hashed (bcrypt) and never returned from API responses
@@ -772,11 +795,15 @@ VITE_PUBLIC_STRIPE_KEY=your_stripe_publishable_key
 
 ---
 
+<a id="contributing"></a>
+
 ## 🧑‍💻 Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ---
+
+<a id="planned-features"></a>
 
 ## 🚧 Planned Features
 
@@ -797,6 +824,8 @@ These enhancements are in progress or coming soon:
 - **Fix Project Title**: Update and standardize the project title across all pages
 
 Want to contribute? Check the issues or project board for these features!
+
+<a id="contact"></a>
 
 ## 📬 Contact
 
